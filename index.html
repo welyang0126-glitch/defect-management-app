@@ -310,12 +310,12 @@
   //  Fallback per-tower data (used if sync fails)
   // ============================================================
   const FALLBACK = {
-    'E': {
+    'E tower': {
       floors: ['1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','21F','22F','23F','24F','25F','26F'],
       rooms: ['1','2','3','4','5','6','7'],
       roomDetail: ['AD/PS','AD/PS/ST/AV','AMENITY(POOL)','BATH ROOM','BEDROOM','BELOW PILOTI','DISABLED TOILET','DRESS ROOM','DUMP','ELEV. HALL / AISLE','EPS/TPS','Equipment Entrance','FCC','FIRE PUMP SYSTEM ROOM','KITCHEN','LAUNDRY ROOM','LIVING ROOM','LOCKER ROOM','LOGGIA','MECH.ROOM','MECH.ROOM (SAUNA)','PANTRY / W.I.C','ROOF','SHOWER ROOM','STAIRCASE','STR/FF EV VESTIBULE','TOILET'],
     },
-    'F': {
+    'F tower': {
       floors: ['1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','21F','22F','23F','24F','25F','26F'],
       rooms: ['1','2','3','4','5','6','7'],
       roomDetail: ['AD/PS','AD/PS/ST/AV','ADMIN.OFFICE','AISLE','AMENITY','BATH ROOM','BEDROOM','BELOW PILOTI','DRESS ROOM','DUMP','ELEV. HALL','EPS/TPS','ENTRANCE','FIRE PUMP SYSTEM ROOM','KITCHEN','LAUNDRY ROOM','LIVING ROOM','LOBBY','LOGGIA','MDF','MECH.ROOM','MECH.STAIR','PANTRY / W.I.C','ROOF','SECURITY OFFICE','STAIRCASE','STR/FF EV VESTIBULE','TOILET'],
@@ -442,7 +442,9 @@
       }).filter(Boolean)
     )];
 
-    const towerName = extract('Tower')[0] || tab;
+    const TOWER_NAME_MAP = { 'E': 'E tower', 'F': 'F tower' };
+    const rawTower = extract('Tower')[0] || tab;
+    const towerName = TOWER_NAME_MAP[rawTower] || rawTower;
     const floors     = extract('Floor');
     const rooms      = extract('Room');
     const roomDetail = extract('Room detailed').sort((a, b) => a.localeCompare(b));
@@ -493,8 +495,9 @@
     dbg('Towers loaded: ' + JSON.stringify(Object.keys(DATA.towerData)));
 
     // Render Tower and Work Category (always available)
+    const VALID_TOWERS = ['E tower', 'F tower', 'Office', 'Commercial', 'Basement'];
     revealOptions('tower-options', 'tower-skeleton');
-    renderOptions('tower-options', Object.keys(DATA.towerData), 'tower', 'col3');
+    renderOptions('tower-options', Object.keys(DATA.towerData).filter(t => VALID_TOWERS.includes(t)), 'tower', 'col3');
     revealOptions('work-options', 'work-skeleton');
     renderOptions('work-options', DATA.workCategory, 'work', 'col1');
 
