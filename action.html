@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Defect Action</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#28a745" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Defect Action" />
+  <style>
+    :root {
+      --blue: #0056B3;
+      --blue-light: #e8f0fb;
+      --black: #111111;
+      --gray-dark: #444444;
+      --gray-mid: #888888;
+      --gray-light: #e0e0e0;
+      --gray-bg: #f5f5f5;
+      --white: #ffffff;
+      --green: #28a745;
+      --radius: 10px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-bg); color: var(--black); min-height: 100vh; }
+
+    /* Nav Tab */
+    .nav-tab { display: flex; background: var(--white); border-bottom: 2px solid var(--gray-light); position: sticky; top: 0; z-index: 101; }
+    .nav-tab a { flex: 1; text-align: center; padding: 13px 8px; font-size: 13px; font-weight: 600; color: var(--gray-mid); text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+    .nav-tab a.active { color: var(--green); border-bottom-color: var(--green); }
+    .nav-tab a:not(.active):active { background: var(--gray-bg); }
+
+    /* Header */
+    .header { background: var(--green); color: var(--white); padding: 20px 20px 18px; position: sticky; top: 49px; z-index: 100; box-shadow: 0 2px 8px rgba(40,167,69,0.3); }
+    .header h1 { font-size: 18px; font-weight: 700; }
+    .header-sub { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .header p { font-size: 12px; opacity: 0.8; }
+    .sync-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; background: rgba(255,255,255,0.2); display: flex; align-items: center; gap: 4px; }
+    .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #aaa; flex-shrink: 0; }
+    .sync-dot.loading { background: #ffd600; animation: pulse 1s infinite; }
+    .sync-dot.ok      { background: #90ee90; }
+    .sync-dot.error   { background: #f44336; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* Progress */
+    .progress-wrap { background: var(--white); padding: 12px 20px; border-bottom: 1px solid var(--gray-light); }
+    .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--gray-mid); margin-bottom: 6px; }
+    .progress-bar { height: 4px; background: var(--gray-light); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.4s ease; }
+
+    /* Form */
+    .form-container { padding: 16px; max-width: 640px; margin: 0 auto; }
+
+    /* Card */
+    .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; overflow: hidden; }
+    .card.card-locked { opacity: 0.5; pointer-events: none; }
+    .card-header { padding: 16px 18px 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--gray-light); }
+    .step-badge { background: var(--green); color: var(--white); font-size: 11px; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-badge.done { background: var(--green); }
+    .step-badge.pending { background: var(--gray-light); color: var(--gray-mid); }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--black); flex: 1; }
+    .required-mark { color: #e02020; margin-left: 2px; }
+    .card-tag { font-size: 10px; color: var(--gray-mid); }
+
+    /* Skeleton */
+    .skeleton-wrap { padding: 14px 18px 16px; display: grid; gap: 8px; }
+    .skeleton { height: 38px; border-radius: 8px; background: linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Options */
+    .options-grid { padding: 14px 18px 16px; display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+    .options-grid.col1 { grid-template-columns: 1fr; }
+    .options-grid.col3 { grid-template-columns: repeat(3,1fr); }
+    .options-grid.col4 { grid-template-columns: repeat(4,1fr); }
+    .option-btn { border: 1.5px solid var(--gray-light); background: var(--white); color: var(--gray-dark); padding: 10px 6px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; transition: all 0.15s; line-height: 1.3; word-break: break-word; }
+    .option-btn:active { transform: scale(0.97); }
+    .option-btn.selected { border-color: var(--green); background: #e6f4ea; color: var(--green); font-weight: 700; }
+
+    /* Placeholder */
+    .field-placeholder { padding: 24px 18px; text-align: center; color: var(--gray-mid); font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .ph-arrow { font-size: 18px; animation: bounce 1.2s infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+    /* ID cards */
+    .id-list { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .id-card { border: 1.5px solid var(--gray-light); border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: all 0.15s; background: var(--white); text-align: left; width: 100%; }
+    .id-card:active { transform: scale(0.98); }
+    .id-card.selected { border-color: var(--green); background: #e6f4ea; }
+    .id-desc { font-size: 13px; font-weight: 600; color: var(--black); line-height: 1.4; margin-bottom: 4px; }
+    .id-card.selected .id-desc { color: var(--green); }
+    .id-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .id-tag { font-size: 10px; background: var(--gray-bg); color: var(--gray-mid); padding: 2px 7px; border-radius: 20px; }
+    .id-card.selected .id-tag { background: rgba(40,167,69,0.1); color: var(--green); }
+    .id-empty { padding: 24px 18px; text-align: center; color: var(--gray-mid); font-size: 13px; }
+
+    /* Photo */
+    .photo-wrap { padding: 14px 18px 16px; }
+    .upload-zone { border: 2px dashed var(--gray-light); border-radius: 8px; padding: 28px 20px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+    .upload-zone:active { background: #e6f4ea; border-color: var(--green); }
+    .upload-zone.has-file { border-color: var(--green); background: #e6f4ea; }
+    .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+    .upload-icon { font-size: 36px; margin-bottom: 8px; }
+    .upload-text { font-size: 14px; color: var(--gray-dark); font-weight: 500; }
+    .upload-sub { font-size: 11px; color: var(--gray-mid); margin-top: 4px; }
+    .photo-preview-wrap { margin-top: 12px; display: none; }
+    .photo-preview-wrap.show { display: block; }
+    .photo-preview { position: relative; border-radius: 8px; overflow: hidden; background: var(--black); }
+    .photo-preview img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
+    .photo-remove { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: var(--white); border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .photo-info { margin-top: 8px; font-size: 12px; color: var(--gray-mid); }
+
+    /* Submit */
+    .submit-wrap { padding: 8px 0 32px; }
+    .submit-btn { width: 100%; background: var(--green); color: var(--white); border: none; border-radius: var(--radius); padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .submit-btn:active { transform: scale(0.98); background: #1e7e34; }
+    .submit-btn:disabled { background: var(--gray-mid); cursor: not-allowed; transform: none; }
+    .upload-progress { background: #e6f4ea; border: 1px solid #b7dfbf; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; font-size: 13px; color: #1e7e34; display: none; }
+    .upload-progress.show { display: block; }
+    .upload-err { background: #fde8e8; border: 1px solid #f5c6c6; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; font-size: 13px; color: #c0392b; display: none; }
+    .upload-err.show { display: block; }
+
+    /* Success */
+    .success-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; padding: 40px 20px; text-align: center; }
+    .success-screen.show { display: flex; }
+    .success-icon { font-size: 64px; margin-bottom: 20px; }
+    .success-title { font-size: 22px; font-weight: 700; color: var(--green); margin-bottom: 10px; }
+    .success-msg { font-size: 14px; color: var(--gray-mid); line-height: 1.6; }
+    .reset-btn { margin-top: 28px; border: 2px solid var(--green); background: transparent; color: var(--green); border-radius: var(--radius); padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+    /* Error */
+    .error-msg { font-size: 11px; color: #e02020; padding: 0 18px 10px; display: none; }
+    .error-msg.show { display: block; }
+    .fetch-error { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #856404; margin-bottom: 12px; display: none; }
+    .fetch-error.show { display: block; }
+
+    /* Record count */
+    .record-count { font-size: 11px; color: var(--gray-mid); padding: 0 18px 4px; }
+  </style>
+</head>
+<body>
+
+<nav class="nav-tab">
+  <a href="index.html">📋 Defect Report</a>
+  <a href="action.html" class="active">✅ Defect Action</a>
+</nav>
+
+<div id="mainForm">
+  <div class="header">
+    <h1>Defect Action Report</h1>
+    <div class="header-sub">
+      <p>Antigravity Defect Resolution System</p>
+      <div class="sync-badge">
+        <div class="sync-dot loading" id="syncDot"></div>
+        <span id="syncText">Syncing...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="progressText">Progress</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="form-container">
+    <div class="fetch-error" id="fetchError">⚠️ Could not sync with Google Sheets. No records available.</div>
+
+    <!-- ===== QUICK MODE (AppSheet / URL ?id= param) ===== -->
+    <div id="quickMode" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div class="step-badge done">✓</div>
+          <div class="card-title">Defect ID</div>
+        </div>
+        <div style="padding:14px 18px 16px">
+          <div id="quickIdText" style="font-size:12px;color:#444;word-break:break-all;background:#f5f5f5;border-radius:8px;padding:12px 14px;line-height:1.6"></div>
+        </div>
+      </div>
+      <div class="card" id="quickPhotoCard">
+        <div class="card-header">
+          <div class="step-badge" id="quickPhotoBadge">1</div>
+          <div class="card-title">Photo (After) <span class="required-mark">*</span></div>
+        </div>
+        <div class="photo-wrap">
+          <div class="upload-zone" id="quickUploadZone">
+            <input type="file" id="quickPhotoInput" accept="image/*" onchange="handleQuickPhoto(event)" />
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">Tap to upload after photo</div>
+            <div class="upload-sub">Max 100MB · JPG, PNG, HEIC</div>
+          </div>
+          <div class="photo-preview-wrap" id="quickPreviewWrap">
+            <div class="photo-preview">
+              <img id="quickPreviewImg" src="" alt="Preview" />
+              <button class="photo-remove" onclick="removeQuickPhoto()">✕</button>
+            </div>
+            <div class="photo-info" id="quickPhotoInfo"></div>
+          </div>
+          <div class="error-msg" id="err-quick-photo" style="padding:0;margin-top:6px;"></div>
+        </div>
+      </div>
+      <div class="submit-wrap">
+        <div class="upload-progress" id="quickUploadProgress">⏳ Uploading photo and updating record...</div>
+        <div class="upload-err" id="quickUploadErr"></div>
+        <button class="submit-btn" id="quickSubmitBtn" onclick="submitQuickForm()">Submit Action</button>
+      </div>
+    </div>
+
+    <!-- ===== MANUAL MODE (full 6-step selection) ===== -->
+    <div id="manualMode">
+
+    <!-- 1. Tower -->
+    <div class="card" id="card1">
+      <div class="card-header">
+        <div class="step-badge" id="badge1">1</div>
+        <div class="card-title">Tower <span class="required-mark">*</span></div>
+        <div class="card-tag" id="syncTag"></div>
+      </div>
+      <div id="tower-skeleton" class="skeleton-wrap" style="grid-template-columns:repeat(2,1fr)">
+        <div class="skeleton"></div><div class="skeleton"></div>
+        <div class="skeleton"></div><div class="skeleton"></div>
+      </div>
+      <div id="tower-options" class="options-grid col2" style="display:none"></div>
+      <div class="error-msg" id="err-tower">Please select a Tower.</div>
+    </div>
+
+    <!-- 2. Floor -->
+    <div class="card" id="card2">
+      <div class="card-header">
+        <div class="step-badge pending" id="badge2">2</div>
+        <div class="card-title">Floor <span class="required-mark">*</span></div>
+      </div>
+      <div id="floor-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Tower first</div>
+      <div id="floor-options" class="options-grid col4" style="display:none"></div>
+      <div class="error-msg" id="err-floor">Please select a Floor.</div>
+    </div>
+
+    <!-- 3. Room Detailed -->
+    <div class="card" id="card3">
+      <div class="card-header">
+        <div class="step-badge pending" id="badge3">3</div>
+        <div class="card-title">Room Detailed <span class="required-mark">*</span></div>
+      </div>
+      <div id="roomdetail-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Floor first</div>
+      <div id="roomdetail-options" class="options-grid col2" style="display:none"></div>
+      <div class="error-msg" id="err-roomdetail">Please select Room Detailed.</div>
+    </div>
+
+    <!-- 4. Work Category -->
+    <div class="card" id="card4">
+      <div class="card-header">
+        <div class="step-badge pending" id="badge4">4</div>
+        <div class="card-title">Work Category <span class="required-mark">*</span></div>
+      </div>
+      <div id="work-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select Room Detailed first</div>
+      <div id="work-options" class="options-grid col1" style="display:none"></div>
+      <div class="error-msg" id="err-work">Please select a Work Category.</div>
+    </div>
+
+    <!-- 5. ID -->
+    <div class="card" id="card5">
+      <div class="card-header">
+        <div class="step-badge pending" id="badge5">5</div>
+        <div class="card-title">Defect ID <span class="required-mark">*</span></div>
+      </div>
+      <div id="id-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select Work Category first</div>
+      <div id="id-count" class="record-count" style="display:none"></div>
+      <div id="id-list" style="display:none"></div>
+      <div class="error-msg" id="err-id">Please select a Defect ID.</div>
+    </div>
+
+    <!-- 6. Photo (After) -->
+    <div class="card" id="card6">
+      <div class="card-header">
+        <div class="step-badge pending" id="badge6">6</div>
+        <div class="card-title">Photo (After) <span class="required-mark">*</span></div>
+      </div>
+      <div class="photo-wrap">
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)" />
+          <div class="upload-icon">📸</div>
+          <div class="upload-text">Tap to upload after photo</div>
+          <div class="upload-sub">Max 100MB · JPG, PNG, HEIC</div>
+        </div>
+        <div class="photo-preview-wrap" id="previewWrap">
+          <div class="photo-preview">
+            <img id="previewImg" src="" alt="Preview" />
+            <button class="photo-remove" onclick="removePhoto()">✕</button>
+          </div>
+          <div class="photo-info" id="photoInfo"></div>
+        </div>
+        <div class="error-msg" id="err-photo" style="padding:0;margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <div class="submit-wrap">
+      <div class="upload-progress" id="uploadProgress">⏳ Uploading photo and updating records...</div>
+      <div class="upload-err" id="uploadErr"></div>
+      <button class="submit-btn" id="submitBtn" onclick="submitForm()">Submit Action</button>
+    </div>
+
+    <!-- Debug Panel -->
+    <div style="margin-bottom:32px;">
+      <button onclick="toggleDebug()" style="width:100%;background:#111;color:#aaa;border:none;padding:10px;border-radius:8px;font-size:12px;cursor:pointer;">🛠 Debug Panel</button>
+      <div id="debugPanel" style="display:none;background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:14px;border-radius:0 0 8px 8px;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto;"></div>
+    </div>
+
+    </div><!-- /manualMode -->
+  </div>
+</div>
+
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✅</div>
+  <div class="success-title">Action Submitted!</div>
+  <div class="success-msg">The defect action has been recorded.<br>The record will be updated shortly.</div>
+  <button class="reset-btn" onclick="resetForm()">Submit Another Action</button>
+</div>
+
+<script>
+  // ============================================================
+  //  Config
+  // ============================================================
+  const SHEET_ID = '1t_feuRxrgQYyKw7PoplyPcyWa73A8lIVq7fHvrLhaIY';
+  const SHEET_TAB = 'Sheet1';
+
+  // Apps Script 배포 후 URL을 여기에 입력하세요
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzM7U6QlKOpsT-hM7FZvRAEIiG7HpXjLOTbRICQvuN9CDcDoiNqmyA3Hckj4JI6R7c6/exec';
+
+  // Column positions (0-based) — confirmed from spreadsheet structure
+  const COL = {
+    ID: 0, TIME_BEFORE: 1, TIME_AFTER: 2,
+    TOWER: 3, FLOOR: 4, ROOM: 5, ROOM_DETAIL: 6,
+    WORK_CAT: 7, DESC_O: 8, DESC_E: 9,
+    PIC: 10, PHOTO_BEFORE: 11, PHOTO_AFTER: 12,
+    STATUS: 13, APPROVED: 14,
+  };
+
+  // ============================================================
+  //  State
+  // ============================================================
+  let allRecords = [];  // all rows from sheet
+
+  const state = {
+    tower: null, floor: null, roomDetail: null,
+    work: null, recordId: null, photo: null,
+  };
+  const TOTAL_FIELDS = 6;
+
+  // ============================================================
+  //  Debug
+  // ============================================================
+  let debugLog = [];
+  function dbg(msg) {
+    const t = new Date().toISOString().slice(11, 23);
+    debugLog.push(`[${t}] ${msg}`);
+    const p = document.getElementById('debugPanel');
+    if (p) p.textContent = debugLog.join('\n');
+    console.log(msg);
+  }
+  function toggleDebug() {
+    const p = document.getElementById('debugPanel');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // ============================================================
+  //  JSONP fetch
+  // ============================================================
+  function fetchSheet() {
+    return new Promise((resolve, reject) => {
+      // gviz default response format: google.visualization.Query.setResponse({...})
+      // Override it directly instead of using handler: parameter
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_TAB)}`;
+      dbg('Fetching: ' + url);
+
+      const timer = setTimeout(() => {
+        window._gvizCb = null;
+        document.getElementById('_s_action')?.remove();
+        reject(new Error('timeout'));
+      }, 12000);
+
+      // Ensure the gviz namespace exists and override the callback
+      window.google = window.google || {};
+      window.google.visualization = window.google.visualization || {};
+      window.google.visualization.Query = window.google.visualization.Query || {};
+      window.google.visualization.Query.setResponse = function(json) {
+        clearTimeout(timer);
+        window.google.visualization.Query.setResponse = null;
+        document.getElementById('_s_action')?.remove();
+        dbg('gviz callback fired, status: ' + json.status);
+        if (json.status === 'error') {
+          reject(new Error('gviz error: ' + (json.errors?.[0]?.message || 'unknown')));
+        } else {
+          resolve(json);
+        }
+      };
+
+      const script = document.createElement('script');
+      script.id = '_s_action';
+      script.src = url;
+      script.onerror = (e) => {
+        clearTimeout(timer);
+        reject(new Error('script-load-error'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  function getCell(row, idx) {
+    const c = row.c[idx];
+    if (!c) return '';
+    return (c.f || (c.v != null ? String(c.v) : '')).trim();
+  }
+
+  function parseRecords(json) {
+    const rows = json.table.rows;
+    const cols = json.table.cols;
+    dbg(`Rows: ${rows.length}, Cols: ${cols.length}`);
+
+    // Detect if labels are available; if not, use positional COL map
+    const hasLabels = cols.some(c => c.label && c.label.trim());
+    dbg('Has column labels: ' + hasLabels);
+
+    // If labels exist, rebuild COL map from them
+    let colMap = { ...COL };
+    if (hasLabels) {
+      const labelIdx = {};
+      cols.forEach((c, i) => { if (c.label) labelIdx[c.label.trim()] = i; });
+      dbg('Label map: ' + JSON.stringify(labelIdx));
+      const remap = {
+        'ID': 'ID', 'Time(before)': 'TIME_BEFORE', 'Time(after)': 'TIME_AFTER',
+        'Tower': 'TOWER', 'Floor': 'FLOOR', 'Room': 'ROOM',
+        'Room detailed': 'ROOM_DETAIL', 'Work category': 'WORK_CAT',
+        'Description(O)': 'DESC_O', 'Description(E)': 'DESC_E',
+        'PIC': 'PIC', 'Photo(before)': 'PHOTO_BEFORE', 'Photo(after)': 'PHOTO_AFTER',
+        'Status': 'STATUS', 'approved': 'APPROVED',
+      };
+      Object.entries(remap).forEach(([label, key]) => {
+        if (labelIdx[label] !== undefined) colMap[key] = labelIdx[label];
+      });
+    }
+
+    const records = rows.map(row => ({
+      id:         getCell(row, colMap.ID),
+      timeBefore: getCell(row, colMap.TIME_BEFORE),
+      tower:      getCell(row, colMap.TOWER),
+      floor:      getCell(row, colMap.FLOOR),
+      room:       getCell(row, colMap.ROOM),
+      roomDetail: getCell(row, colMap.ROOM_DETAIL),
+      workCat:    getCell(row, colMap.WORK_CAT),
+      descE:      getCell(row, colMap.DESC_E),
+      descO:      getCell(row, colMap.DESC_O),
+      pic:        getCell(row, colMap.PIC),
+      status:     getCell(row, colMap.STATUS),
+      photoAfter: getCell(row, colMap.PHOTO_AFTER),
+    })).filter(r => r.tower && r.floor && !r.photoAfter); // skip empty rows and already-actioned
+
+    dbg(`Parsed ${records.length} valid records`);
+    return records;
+  }
+
+  // ============================================================
+  //  Sync
+  // ============================================================
+  async function syncSheet() {
+    setSyncStatus('loading', 'Syncing...');
+    debugLog = [];
+    try {
+      const json = await fetchSheet();
+      allRecords = parseRecords(json);
+
+      const towers = unique(allRecords.map(r => r.tower));
+      dbg('Towers: ' + JSON.stringify(towers));
+
+      // Render towers
+      document.getElementById('tower-skeleton').style.display = 'none';
+      renderOptions('tower-options', towers, 'tower', 'col2');
+      document.getElementById('tower-options').style.display = '';
+
+      setSyncStatus('ok', 'Live · ' + allRecords.length + ' pending');
+      document.getElementById('syncTag').textContent = allRecords.length + ' pending';
+    } catch (e) {
+      dbg('Sync failed: ' + e.message);
+      setSyncStatus('error', 'Offline');
+      document.getElementById('fetchError').classList.add('show');
+      document.getElementById('tower-skeleton').style.display = 'none';
+      document.getElementById('tower-options').style.display = '';
+    }
+  }
+
+  // ============================================================
+  //  Filter helpers
+  // ============================================================
+  function unique(arr) {
+    return [...new Set(arr.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  }
+
+  function filterRecords() {
+    return allRecords.filter(r =>
+      (!state.tower      || r.tower      === state.tower) &&
+      (!state.floor      || r.floor      === state.floor) &&
+      (!state.roomDetail || r.roomDetail === state.roomDetail) &&
+      (!state.work       || r.workCat    === state.work)
+    );
+  }
+
+  // ============================================================
+  //  Cascade update functions
+  // ============================================================
+  function onTowerChange() {
+    state.floor = null; state.roomDetail = null; state.work = null; state.recordId = null;
+    updateBadge('floor'); updateBadge('roomDetail'); updateBadge('work'); updateBadge('recordId');
+
+    const filtered = filterRecords();
+    const floors = unique(filtered.map(r => r.floor));
+    renderField('floor-options', 'floor-placeholder', floors, 'floor', 'col4');
+    showPlaceholder('roomdetail');
+    showPlaceholder('work');
+    showIdPlaceholder('↑ Select Work Category first');
+    updateProgress();
+  }
+
+  function onFloorChange() {
+    state.roomDetail = null; state.work = null; state.recordId = null;
+    updateBadge('roomDetail'); updateBadge('work'); updateBadge('recordId');
+
+    const filtered = filterRecords();
+    const rds = unique(filtered.map(r => r.roomDetail));
+    renderField('roomdetail-options', 'roomdetail-placeholder', rds, 'roomDetail', 'col2');
+    showPlaceholder('work');
+    showIdPlaceholder('↑ Select Work Category first');
+    updateProgress();
+  }
+
+  function onRoomDetailChange() {
+    state.work = null; state.recordId = null;
+    updateBadge('work'); updateBadge('recordId');
+
+    const filtered = filterRecords();
+    const works = unique(filtered.map(r => r.workCat));
+    renderField('work-options', 'work-placeholder', works, 'work', 'col1');
+    showIdPlaceholder('↑ Select Work Category first');
+    updateProgress();
+  }
+
+  function onWorkChange() {
+    state.recordId = null;
+    updateBadge('recordId');
+    renderIdList();
+    updateProgress();
+  }
+
+  // ============================================================
+  //  ID list rendering
+  // ============================================================
+  function renderIdList() {
+    const filtered = filterRecords();
+    const ph    = document.getElementById('id-placeholder');
+    const count = document.getElementById('id-count');
+    const list  = document.getElementById('id-list');
+
+    ph.style.display    = 'none';
+    count.style.display = '';
+    list.style.display  = '';
+
+    if (filtered.length === 0) {
+      count.textContent = 'No records found';
+      list.innerHTML = '<div class="id-empty">No matching defect records found.</div>';
+      return;
+    }
+
+    count.textContent = filtered.length + ' record' + (filtered.length > 1 ? 's' : '') + ' found';
+
+    list.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'id-list';
+
+    filtered.forEach(rec => {
+      const card = document.createElement('button');
+      card.className = 'id-card' + (state.recordId === rec.id ? ' selected' : '');
+
+      const recId   = rec.id || '(No ID)';
+      const descE   = rec.descE || '';
+      const dateStr = rec.timeBefore ? rec.timeBefore.split(' ')[0] : '';
+      const status  = rec.status || '';
+
+      card.innerHTML = `
+        <div class="id-desc">${escHtml(recId)}</div>
+        <div class="id-meta">
+          ${descE   ? `<span class="id-tag">📋 ${escHtml(descE)}</span>` : ''}
+          ${dateStr ? `<span class="id-tag">📅 ${escHtml(dateStr)}</span>` : ''}
+          ${rec.pic ? `<span class="id-tag">👤 ${escHtml(rec.pic)}</span>` : ''}
+          ${status  ? `<span class="id-tag">${escHtml(status)}</span>` : ''}
+        </div>`;
+      card.onclick = () => selectRecord(rec, card);
+      wrap.appendChild(card);
+    });
+
+    list.appendChild(wrap);
+  }
+
+  function selectRecord(rec, cardEl) {
+    state.recordId = rec.id;
+    document.querySelectorAll('.id-card').forEach(c => c.classList.remove('selected'));
+    cardEl.classList.add('selected');
+    hideError('err-id');
+    updateBadge('recordId');
+    updateProgress();
+  }
+
+  function showIdPlaceholder(msg) {
+    const ph    = document.getElementById('id-placeholder');
+    const count = document.getElementById('id-count');
+    const list  = document.getElementById('id-list');
+    ph.innerHTML = `<span class="ph-arrow">↑</span> ${msg}`;
+    ph.style.display    = '';
+    count.style.display = 'none';
+    list.style.display  = 'none';
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ============================================================
+  //  Render helpers
+  // ============================================================
+  function renderOptions(containerId, items, stateKey, colClass) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = '';
+    el.className = 'options-grid ' + (colClass || '');
+    items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn' + (state[stateKey] === item ? ' selected' : '');
+      btn.textContent = item;
+      btn.onclick = () => selectOption(stateKey, item, containerId);
+      el.appendChild(btn);
+    });
+  }
+
+  function renderField(optId, phId, items, stateKey, colClass) {
+    document.getElementById(phId).style.display  = 'none';
+    document.getElementById(optId).style.display = '';
+    renderOptions(optId, items, stateKey, colClass);
+  }
+
+  function showPlaceholder(field) {
+    const phMap  = { roomdetail: 'roomdetail-placeholder', work: 'work-placeholder' };
+    const optMap = { roomdetail: 'roomdetail-options',     work: 'work-options'     };
+    const ph  = document.getElementById(phMap[field]);
+    const opt = document.getElementById(optMap[field]);
+    if (ph)  ph.style.display  = '';
+    if (opt) opt.style.display = 'none';
+  }
+
+  function selectOption(key, value, containerId) {
+    state[key] = value;
+    document.getElementById(containerId).querySelectorAll('.option-btn').forEach(b => {
+      b.classList.toggle('selected', b.textContent === value);
+    });
+    hideError('err-' + ERR_KEY[key]);
+    updateBadge(key);
+
+    if      (key === 'tower')      onTowerChange();
+    else if (key === 'floor')      onFloorChange();
+    else if (key === 'roomDetail') onRoomDetailChange();
+    else if (key === 'work')       onWorkChange();
+  }
+
+  const ERR_KEY = { tower:'tower', floor:'floor', roomDetail:'roomdetail', work:'work' };
+
+  const BADGE_MAP = { tower:1, floor:2, roomDetail:3, work:4, recordId:5 };
+  function updateBadge(key) {
+    const idx = BADGE_MAP[key]; if (!idx) return;
+    const b = document.getElementById('badge' + idx);
+    const done = key === 'recordId' ? !!state.recordId : !!state[key];
+    b.textContent = done ? '✓' : idx;
+    b.className = 'step-badge' + (done ? ' done' : ' pending');
+  }
+
+  function updateProgress() {
+    const done = [state.tower, state.floor, state.roomDetail, state.work, state.recordId, state.photo]
+      .filter(Boolean).length;
+    const pct = Math.round((done / TOTAL_FIELDS) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent  = pct + '%';
+    document.getElementById('progressText').textContent = `${done} / ${TOTAL_FIELDS} completed`;
+  }
+
+  // ============================================================
+  //  Photo
+  // ============================================================
+  const MAX_SIZE = 100 * 1024 * 1024;
+  function handlePhoto(e) {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.size > MAX_SIZE) {
+      showError('err-photo', 'File exceeds 100MB. Please select a smaller file.');
+      e.target.value = ''; return;
+    }
+    hideError('err-photo');
+    state.photo = file;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('previewImg').src = ev.target.result;
+      document.getElementById('previewWrap').classList.add('show');
+      document.getElementById('uploadZone').classList.add('has-file');
+      document.getElementById('photoInfo').textContent = `${file.name}  (${(file.size/1024/1024).toFixed(1)} MB)`;
+      document.getElementById('badge6').textContent = '✓';
+      document.getElementById('badge6').className = 'step-badge done';
+      updateProgress();
+    };
+    reader.readAsDataURL(file);
+  }
+  function removePhoto() {
+    state.photo = null;
+    document.getElementById('photoInput').value = '';
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewWrap').classList.remove('show');
+    document.getElementById('uploadZone').classList.remove('has-file');
+    document.getElementById('photoInfo').textContent = '';
+    document.getElementById('badge6').textContent = '6';
+    document.getElementById('badge6').className = 'step-badge pending';
+    updateProgress();
+  }
+
+  // ============================================================
+  //  Validation & Submit
+  // ============================================================
+  function showError(id, msg) { const e = document.getElementById(id); if (msg) e.textContent = msg; e.classList.add('show'); }
+  function hideError(id) { document.getElementById(id)?.classList.remove('show'); }
+
+  async function submitForm() {
+    // — Validate —
+    let valid = true;
+    const checks = [
+      { k:'tower',      e:'err-tower',      m:'Please select a Tower.' },
+      { k:'floor',      e:'err-floor',      m:'Please select a Floor.' },
+      { k:'roomDetail', e:'err-roomdetail', m:'Please select Room Detailed.' },
+      { k:'work',       e:'err-work',       m:'Please select a Work Category.' },
+      { k:'recordId',   e:'err-id',         m:'Please select a Defect ID.' },
+    ];
+    checks.forEach(({ k, e, m }) => {
+      const val = k === 'recordId' ? state.recordId : state[k];
+      if (!val) { showError(e, m); valid = false; } else hideError(e);
+    });
+    if (!state.photo) { showError('err-photo', 'Please upload an after photo.'); valid = false; } else hideError('err-photo');
+    if (!valid) { document.querySelector('.error-msg.show')?.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
+
+    // — Check Apps Script URL —
+    if (!APPS_SCRIPT_URL) {
+      showUploadErr('Apps Script URL is not configured. Please add the deployed URL to action.html → APPS_SCRIPT_URL.');
+      return;
+    }
+
+    // — Start upload —
+    const btn  = document.getElementById('submitBtn');
+    const prog = document.getElementById('uploadProgress');
+    btn.disabled = true;
+    btn.textContent = 'Uploading...';
+    prog.classList.add('show');
+    document.getElementById('uploadErr').classList.remove('show');
+
+    try {
+      const fileBase64 = await fileToBase64(state.photo);
+      dbg('Base64 length: ' + fileBase64.length);
+
+      const payload = {
+        type:        'action',
+        fileBase64,
+        fileName:    state.photo.name,
+        mimeType:    state.photo.type || 'image/jpeg',
+        recordId:    state.recordId,
+        tower:       state.tower       || '',
+        floor:       state.floor       || '',
+        roomDetail:  state.roomDetail  || '',
+        workCategory: state.work       || '',
+      };
+
+      dbg('Sending to Apps Script: ' + APPS_SCRIPT_URL);
+      const res  = await fetch(APPS_SCRIPT_URL, {
+        method:  'POST',
+        body:    JSON.stringify(payload),
+        headers: { 'Content-Type': 'text/plain' }, // text/plain avoids CORS preflight
+      });
+
+      const json = await res.json();
+      dbg('Response: ' + JSON.stringify(json));
+
+      if (!json.ok) throw new Error(json.error || 'Upload failed');
+
+      prog.classList.remove('show');
+      document.getElementById('mainForm').style.display = 'none';
+      document.getElementById('successScreen').classList.add('show');
+      window.scrollTo(0, 0);
+
+    } catch (err) {
+      dbg('Submit error: ' + err.message);
+      prog.classList.remove('show');
+      showUploadErr('Upload failed: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = 'Submit Action';
+    }
+  }
+
+  // Convert File to base64 string (without the data:...;base64, prefix)
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result.split(',')[1]);
+      reader.onerror = () => reject(new Error('FileReader error'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function showUploadErr(msg) {
+    const el = document.getElementById('uploadErr');
+    el.textContent = '⚠️ ' + msg;
+    el.classList.add('show');
+  }
+
+  function resetForm() {
+    Object.keys(state).forEach(k => { state[k] = null; });
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById('badge' + i);
+      b.textContent = i; b.className = 'step-badge pending';
+    }
+    showPlaceholder('roomdetail');
+    showPlaceholder('work');
+    showIdPlaceholder('↑ Select Work Category first');
+    document.getElementById('floor-placeholder').style.display = '';
+    document.getElementById('floor-options').style.display = 'none';
+    removePhoto();
+    document.querySelectorAll('.error-msg').forEach(e => e.classList.remove('show'));
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('progressPct').textContent = '0%';
+    document.getElementById('progressText').textContent = 'Progress';
+    document.getElementById('successScreen').classList.remove('show');
+    document.getElementById('mainForm').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  // ============================================================
+  //  Status
+  // ============================================================
+  function setSyncStatus(type, text) {
+    document.getElementById('syncDot').className = 'sync-dot ' + type;
+    document.getElementById('syncText').textContent = text;
+  }
+
+  // ============================================================
+  //  Quick Mode — triggered when ?id= is in the URL
+  // ============================================================
+  let quickState = { photo: null, recordId: null };
+
+  function initQuickMode(recordId) {
+    quickState.recordId = recordId;
+    document.getElementById('quickMode').style.display   = '';
+    document.getElementById('manualMode').style.display  = 'none';
+    document.getElementById('progressText').textContent  = 'Quick Action Mode';
+    document.getElementById('progressFill').style.width  = '50%';
+    document.getElementById('progressPct').textContent   = '50%';
+    document.getElementById('quickIdText').textContent   = recordId;
+    dbg('Quick Mode activated. ID: ' + recordId);
+  }
+
+  function handleQuickPhoto(e) {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.size > MAX_SIZE) {
+      document.getElementById('err-quick-photo').textContent = 'File exceeds 100MB.';
+      document.getElementById('err-quick-photo').classList.add('show');
+      e.target.value = ''; return;
+    }
+    document.getElementById('err-quick-photo').classList.remove('show');
+    quickState.photo = file;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('quickPreviewImg').src = ev.target.result;
+      document.getElementById('quickPreviewWrap').classList.add('show');
+      document.getElementById('quickUploadZone').classList.add('has-file');
+      document.getElementById('quickPhotoInfo').textContent = file.name + '  (' + (file.size/1024/1024).toFixed(1) + ' MB)';
+      document.getElementById('quickPhotoBadge').textContent = '✓';
+      document.getElementById('quickPhotoBadge').className = 'step-badge done';
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('progressPct').textContent  = '100%';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeQuickPhoto() {
+    quickState.photo = null;
+    document.getElementById('quickPhotoInput').value = '';
+    document.getElementById('quickPreviewImg').src = '';
+    document.getElementById('quickPreviewWrap').classList.remove('show');
+    document.getElementById('quickUploadZone').classList.remove('has-file');
+    document.getElementById('quickPhotoInfo').textContent = '';
+    document.getElementById('quickPhotoBadge').textContent = '1';
+    document.getElementById('quickPhotoBadge').className = 'step-badge pending';
+    document.getElementById('progressFill').style.width = '50%';
+    document.getElementById('progressPct').textContent  = '50%';
+  }
+
+  async function submitQuickForm() {
+    if (!quickState.photo) {
+      document.getElementById('err-quick-photo').textContent = 'Please upload an after photo.';
+      document.getElementById('err-quick-photo').classList.add('show');
+      return;
+    }
+    if (!APPS_SCRIPT_URL) {
+      document.getElementById('quickUploadErr').textContent = '⚠️ APPS_SCRIPT_URL is not configured.';
+      document.getElementById('quickUploadErr').classList.add('show');
+      return;
+    }
+    const btn  = document.getElementById('quickSubmitBtn');
+    const prog = document.getElementById('quickUploadProgress');
+    btn.disabled = true;
+    btn.textContent = 'Uploading...';
+    prog.classList.add('show');
+    document.getElementById('quickUploadErr').classList.remove('show');
+
+    try {
+      const fileBase64 = await fileToBase64(quickState.photo);
+      const payload = {
+        type:      'action',
+        fileBase64,
+        fileName:  quickState.photo.name,
+        mimeType:  quickState.photo.type || 'image/jpeg',
+        recordId:  quickState.recordId,
+      };
+      dbg('Quick submit: ' + quickState.recordId);
+      const res  = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST', body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'text/plain' },
+      });
+      const json = await res.json();
+      dbg('Response: ' + JSON.stringify(json));
+      if (!json.ok) throw new Error(json.error || 'Upload failed');
+
+      prog.classList.remove('show');
+      document.getElementById('mainForm').style.display = 'none';
+      document.getElementById('successScreen').classList.add('show');
+      window.scrollTo(0, 0);
+    } catch (err) {
+      dbg('Quick submit error: ' + err.message);
+      prog.classList.remove('show');
+      document.getElementById('quickUploadErr').textContent = '⚠️ ' + err.message;
+      document.getElementById('quickUploadErr').classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Submit Action';
+    }
+  }
+
+  // ============================================================
+  //  Init
+  // ============================================================
+  const urlId = new URLSearchParams(window.location.search).get('id');
+  if (urlId) {
+    initQuickMode(decodeURIComponent(urlId));
+  } else {
+    syncSheet();
+  }
+</script>
+</body>
+</html>

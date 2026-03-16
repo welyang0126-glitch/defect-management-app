@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Defect Survey</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0056B3" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Defect" />
+  <style>
+    :root {
+      --blue: #0056B3;
+      --blue-light: #e8f0fb;
+      --black: #111111;
+      --gray-dark: #444444;
+      --gray-mid: #888888;
+      --gray-light: #e0e0e0;
+      --gray-bg: #f5f5f5;
+      --white: #ffffff;
+      --radius: 10px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-bg); color: var(--black); min-height: 100vh; }
+
+    /* Nav Tab */
+    .nav-tab { display: flex; background: var(--white); border-bottom: 2px solid var(--gray-light); position: sticky; top: 0; z-index: 101; }
+    .nav-tab a { flex: 1; text-align: center; padding: 13px 8px; font-size: 13px; font-weight: 600; color: var(--gray-mid); text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+    .nav-tab a.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .nav-tab a:not(.active):active { background: var(--gray-bg); }
+
+    /* Header */
+    .header { background: var(--blue); color: var(--white); padding: 20px 20px 18px; position: sticky; top: 49px; z-index: 100; box-shadow: 0 2px 8px rgba(0,86,179,0.3); }
+    .header h1 { font-size: 18px; font-weight: 700; }
+    .header-sub { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .header p { font-size: 12px; opacity: 0.8; }
+    .sync-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; background: rgba(255,255,255,0.2); display: flex; align-items: center; gap: 4px; }
+    .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #aaa; flex-shrink: 0; }
+    .sync-dot.loading { background: #ffd600; animation: pulse 1s infinite; }
+    .sync-dot.ok      { background: #4caf50; }
+    .sync-dot.error   { background: #f44336; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* Progress */
+    .progress-wrap { background: var(--white); padding: 12px 20px; border-bottom: 1px solid var(--gray-light); }
+    .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--gray-mid); margin-bottom: 6px; }
+    .progress-bar { height: 4px; background: var(--gray-light); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--blue); border-radius: 4px; transition: width 0.4s ease; }
+
+    /* Form */
+    .form-container { padding: 16px; max-width: 640px; margin: 0 auto; }
+
+    /* Card */
+    .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; overflow: hidden; transition: opacity 0.2s; }
+    .card.card-hidden { display: none; }
+    .card-header { padding: 16px 18px 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--gray-light); }
+    .step-badge { background: var(--blue); color: var(--white); font-size: 11px; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-badge.done { background: #28a745; }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--black); flex: 1; }
+    .required-mark { color: #e02020; margin-left: 2px; }
+    .card-tag { font-size: 10px; color: var(--gray-mid); }
+
+    /* Skeleton */
+    .skeleton-wrap { padding: 14px 18px 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .skeleton { height: 38px; border-radius: 8px; background: linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Options */
+    .options-grid { padding: 14px 18px 16px; display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+    .options-grid.col1 { grid-template-columns: 1fr; }
+    .options-grid.col3 { grid-template-columns: repeat(3,1fr); }
+    .options-grid.col4 { grid-template-columns: repeat(4,1fr); }
+    .option-btn { border: 1.5px solid var(--gray-light); background: var(--white); color: var(--gray-dark); padding: 10px 6px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; transition: all 0.15s; line-height: 1.3; word-break: break-word; }
+    .option-btn:active { transform: scale(0.97); }
+    .option-btn.selected { border-color: var(--blue); background: var(--blue-light); color: var(--blue); font-weight: 700; }
+
+    /* Placeholder */
+    .field-placeholder { padding: 24px 18px; text-align: center; color: var(--gray-mid); font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .ph-arrow { font-size: 18px; animation: bounce 1.2s infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+    /* Textarea */
+    .textarea-wrap { padding: 14px 18px 16px; }
+    textarea { width: 100%; border: 1.5px solid var(--gray-light); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: var(--black); resize: vertical; min-height: 100px; font-family: inherit; line-height: 1.6; outline: none; transition: border-color 0.2s; }
+    textarea:focus { border-color: var(--blue); }
+    textarea::placeholder { color: var(--gray-mid); }
+    .char-count { text-align: right; font-size: 11px; color: var(--gray-mid); margin-top: 6px; }
+
+    /* Photo */
+    .photo-wrap { padding: 14px 18px 16px; }
+    .upload-zone { border: 2px dashed var(--gray-light); border-radius: 8px; padding: 28px 20px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+    .upload-zone:active { background: var(--blue-light); border-color: var(--blue); }
+    .upload-zone.has-file { border-color: var(--blue); background: var(--blue-light); }
+    .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+    .upload-icon { font-size: 36px; margin-bottom: 8px; }
+    .upload-text { font-size: 14px; color: var(--gray-dark); font-weight: 500; }
+    .upload-sub { font-size: 11px; color: var(--gray-mid); margin-top: 4px; }
+    .photo-preview-wrap { margin-top: 12px; display: none; }
+    .photo-preview-wrap.show { display: block; }
+    .photo-preview { position: relative; border-radius: 8px; overflow: hidden; background: var(--black); }
+    .photo-preview img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
+    .photo-remove { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: var(--white); border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .photo-info { margin-top: 8px; font-size: 12px; color: var(--gray-mid); }
+
+    /* Submit */
+    .submit-wrap { padding: 8px 0 32px; }
+    .submit-btn { width: 100%; background: var(--blue); color: var(--white); border: none; border-radius: var(--radius); padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .submit-btn:active { transform: scale(0.98); background: #004494; }
+    .submit-btn:disabled { background: var(--gray-mid); cursor: not-allowed; transform: none; }
+    .upload-progress { background: var(--blue-light); border: 1px solid #b0c8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; font-size: 13px; color: var(--blue); display: none; }
+    .upload-progress.show { display: block; }
+    .upload-err { background: #fde8e8; border: 1px solid #f5c6c6; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; font-size: 13px; color: #c0392b; display: none; }
+    .upload-err.show { display: block; }
+
+    /* Success */
+    .success-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; padding: 40px 20px; text-align: center; }
+    .success-screen.show { display: flex; }
+    .success-icon { font-size: 64px; margin-bottom: 20px; }
+    .success-title { font-size: 22px; font-weight: 700; color: var(--blue); margin-bottom: 10px; }
+    .success-msg { font-size: 14px; color: var(--gray-mid); line-height: 1.6; }
+    .reset-btn { margin-top: 28px; border: 2px solid var(--blue); background: transparent; color: var(--blue); border-radius: var(--radius); padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+    /* Error */
+    .error-msg { font-size: 11px; color: #e02020; padding: 0 18px 10px; display: none; }
+    .error-msg.show { display: block; }
+    .fetch-error { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #856404; margin-bottom: 12px; display: none; }
+    .fetch-error.show { display: block; }
+  </style>
+</head>
+<body>
+
+<nav class="nav-tab">
+  <a href="index.html" class="active">📋 Defect Report</a>
+  <a href="action.html">✅ Defect Action</a>
+</nav>
+
+<div id="mainForm">
+  <div class="header">
+    <h1>Defect Report Survey</h1>
+    <div class="header-sub">
+      <p>Antigravity Defect Reporting System</p>
+      <div class="sync-badge">
+        <div class="sync-dot loading" id="syncDot"></div>
+        <span id="syncText">Syncing...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="progressText">Progress</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="form-container">
+    <div class="fetch-error" id="fetchError">⚠️ Could not sync with Google Sheets. Showing cached data.</div>
+
+    <!-- 1. Tower -->
+    <div class="card" id="card1">
+      <div class="card-header">
+        <div class="step-badge" id="badge1">1</div>
+        <div class="card-title">Tower <span class="required-mark">*</span></div>
+      </div>
+      <div id="tower-skeleton" class="skeleton-wrap" style="grid-template-columns:repeat(3,1fr)">
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      </div>
+      <div id="tower-options" class="options-grid col3" style="display:none"></div>
+      <div class="error-msg" id="err-tower">Please select a Tower.</div>
+    </div>
+
+    <!-- 2. Floor -->
+    <div class="card" id="card2">
+      <div class="card-header">
+        <div class="step-badge" id="badge2">2</div>
+        <div class="card-title">Floor <span class="required-mark">*</span></div>
+      </div>
+      <div id="floor-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Tower first</div>
+      <div id="floor-options" class="options-grid col4" style="display:none"></div>
+      <div class="error-msg" id="err-floor">Please select a Floor.</div>
+    </div>
+
+    <!-- 3. Room -->
+    <div class="card" id="card3">
+      <div class="card-header">
+        <div class="step-badge" id="badge3">3</div>
+        <div class="card-title">Room <span class="required-mark" id="room-required-mark">*</span></div>
+        <div class="card-tag" id="room-tag"></div>
+      </div>
+      <div id="room-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Tower first</div>
+      <div id="room-options" class="options-grid col4" style="display:none"></div>
+      <div class="error-msg" id="err-room">Please select a Room.</div>
+    </div>
+
+    <!-- 4. Room Detailed -->
+    <div class="card" id="card4">
+      <div class="card-header">
+        <div class="step-badge" id="badge4">4</div>
+        <div class="card-title">Room Detailed <span class="required-mark">*</span></div>
+        <div class="card-tag" id="roomDetailSync"></div>
+      </div>
+      <div id="roomdetail-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Tower first</div>
+      <div id="roomdetail-options" class="options-grid" style="display:none"></div>
+      <div class="error-msg" id="err-roomdetail">Please select Room Detailed.</div>
+    </div>
+
+    <!-- 5. Work Category -->
+    <div class="card" id="card5">
+      <div class="card-header">
+        <div class="step-badge" id="badge5">5</div>
+        <div class="card-title">Work Category <span class="required-mark">*</span></div>
+        <div class="card-tag" id="workSync"></div>
+      </div>
+      <div id="work-skeleton" class="skeleton-wrap" style="grid-template-columns:1fr">
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      </div>
+      <div id="work-options" class="options-grid col1" style="display:none"></div>
+      <div class="error-msg" id="err-work">Please select a Work Category.</div>
+    </div>
+
+    <!-- 6. Person In Charge -->
+    <div class="card" id="card6">
+      <div class="card-header">
+        <div class="step-badge" id="badge6">6</div>
+        <div class="card-title">Person In Charge</div>
+      </div>
+      <div class="textarea-wrap">
+        <input type="text" id="pic" placeholder="Enter the person in charge." maxlength="100"
+               style="width:100%;padding:12px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;outline:none;box-sizing:border-box;"
+               oninput="updatePic()" />
+      </div>
+    </div>
+
+    <!-- 7. Description -->
+    <div class="card" id="card7">
+      <div class="card-header">
+        <div class="step-badge" id="badge7">7</div>
+        <div class="card-title">Description</div>
+      </div>
+      <div class="textarea-wrap">
+        <textarea id="description" placeholder="Please describe the defect in detail." maxlength="1000" oninput="updateCharCount()"></textarea>
+        <div class="char-count"><span id="charCount">0</span> / 1000</div>
+      </div>
+    </div>
+
+    <!-- 8. Photo -->
+    <div class="card" id="card8">
+      <div class="card-header">
+        <div class="step-badge" id="badge8">8</div>
+        <div class="card-title">Photo Attachment</div>
+      </div>
+      <div class="photo-wrap">
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)" />
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Tap to upload a photo</div>
+          <div class="upload-sub">Max 100MB · JPG, PNG, HEIC</div>
+        </div>
+        <div class="photo-preview-wrap" id="previewWrap">
+          <div class="photo-preview">
+            <img id="previewImg" src="" alt="Preview" />
+            <button class="photo-remove" onclick="removePhoto()">✕</button>
+          </div>
+          <div class="photo-info" id="photoInfo"></div>
+        </div>
+        <div class="error-msg" id="err-photo" style="padding:0;margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <div class="submit-wrap">
+      <div class="upload-progress" id="uploadProgress">⏳ Uploading photo and saving report...</div>
+      <div class="upload-err" id="uploadErr"></div>
+      <button class="submit-btn" id="submitBtn" onclick="submitForm()">Submit</button>
+    </div>
+
+    <!-- Debug Panel -->
+    <div style="margin-bottom:32px;">
+      <button onclick="toggleDebug()" style="width:100%;background:#111;color:#aaa;border:none;padding:10px;border-radius:8px;font-size:12px;cursor:pointer;">🛠 Debug Panel</button>
+      <div id="debugPanel" style="display:none;background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:14px;border-radius:0 0 8px 8px;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✅</div>
+  <div class="success-title">Submitted Successfully!</div>
+  <div class="success-msg">Your defect report has been received.<br>Our team will review and get back to you shortly.</div>
+  <button class="reset-btn" onclick="resetForm()">Submit Another Report</button>
+</div>
+
+<script>
+  // ============================================================
+  //  Config
+  // ============================================================
+  const SHEET_ID = '1nUKJ1612YuYjoGZDaW74GUGQTuBe7nnrduE6l-POIfE';
+
+  // Apps Script 배포 후 URL을 여기에 입력하세요 (action.html과 동일한 URL)
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzM7U6QlKOpsT-hM7FZvRAEIiG7HpXjLOTbRICQvuN9CDcDoiNqmyA3Hckj4JI6R7c6/exec';
+
+  // Sheet tab name → fetched and parsed into towerData
+  const SHEET_TABS = ['E', 'F', 'O', 'C', 'B'];
+
+  const WORK_CATEGORY = ['Ricons', 'Eunmin S&D', 'Daeshin', 'Hyundai Elevator'];
+
+  // ============================================================
+  //  Fallback per-tower data (used if sync fails)
+  // ============================================================
+  const FALLBACK = {
+    'E': {
+      floors: ['1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','21F','22F','23F','24F','25F','26F'],
+      rooms: ['1','2','3','4','5','6','7'],
+      roomDetail: ['AD/PS','AD/PS/ST/AV','AMENITY(POOL)','BATH ROOM','BEDROOM','BELOW PILOTI','DISABLED TOILET','DRESS ROOM','DUMP','ELEV. HALL / AISLE','EPS/TPS','Equipment Entrance','FCC','FIRE PUMP SYSTEM ROOM','KITCHEN','LAUNDRY ROOM','LIVING ROOM','LOCKER ROOM','LOGGIA','MECH.ROOM','MECH.ROOM (SAUNA)','PANTRY / W.I.C','ROOF','SHOWER ROOM','STAIRCASE','STR/FF EV VESTIBULE','TOILET'],
+    },
+    'F': {
+      floors: ['1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','21F','22F','23F','24F','25F','26F'],
+      rooms: ['1','2','3','4','5','6','7'],
+      roomDetail: ['AD/PS','AD/PS/ST/AV','ADMIN.OFFICE','AISLE','AMENITY','BATH ROOM','BEDROOM','BELOW PILOTI','DRESS ROOM','DUMP','ELEV. HALL','EPS/TPS','ENTRANCE','FIRE PUMP SYSTEM ROOM','KITCHEN','LAUNDRY ROOM','LIVING ROOM','LOBBY','LOGGIA','MDF','MECH.ROOM','MECH.STAIR','PANTRY / W.I.C','ROOF','SECURITY OFFICE','STAIRCASE','STR/FF EV VESTIBULE','TOILET'],
+    },
+    'Office': {
+      floors: ['1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F'],
+      rooms: [],
+      roomDetail: ['AD/PS/ST/AV','AISLE','AMENITY(for office)','BELOW PILOTI','DISABLED TOILET','ELEV. HALL','EPS/TPS','FCC','FIRE EQUIPMENT STORAGE','FIRE TANK ROOM','LOBBY','MECH.ROOM (E/V)','MECH.STAIR','MEETING ROOM','OFFICE','OFFICE AISLE','ROOF','TECHNICAL AREA','TOILET'],
+    },
+    'Commercial': {
+      floors: ['1F','2F','3F'],
+      rooms: [],
+      roomDetail: ['AD/PS/ST/AV','BELOW PILOTI','COMMERCIAL OUTDOOR UNIT AREA','EPS/TPS','LOGGIA','ROOF','STAIRCASE','STR/FF EV VESTIBULE','TOILET'],
+    },
+    'Basement': {
+      floors: ['B1F','B2F'],
+      rooms: [],
+      roomDetail: ['AD/PS/ST/AV','BASEMENT ENTRANCE','DA','ELEV. HALL','ELEV.PIT','EPS/ TPS','EXTERNAL SIDE OF BASEMENT WALL','FAN ROOM','FIRE EXTINGUISHING ROOM','FIRE TANK PUMP ROOM','FIRE TANK ROOM','GARBAGE DUMP','GENERATOR ROOM','MCC PANEL ROOM','MECH.ROOM','MECH.STAIR & RAMP','OIL TANK','OUTDOOR GROUND','OUTDOOR STAIR(LANDING)','OUTDOOR STAIR(STEP) & RAMP','PARKING','PIT','RAMP','RAMP VESTIBULE','SECURITY OFFICE','SECURITY OFFICE ROOF','SECURITY OFFICE TOILET','SEWAGE','SEWAGE TREATMENT TANK','SEWAGE VESTIBULE','STAIRCASE','STAIRCASE ROOF','STR/FF EV VESTIBULE','STORAGE FOR INFLAMMABLE MATERIAL','SUMP PIT','SWIMMING POOL','TRANSFORMER ROOM HV/LV'],
+    },
+  };
+
+  let DATA = {
+    towerData: JSON.parse(JSON.stringify(FALLBACK)),
+    workCategory: [...WORK_CATEGORY],
+  };
+
+  // ============================================================
+  //  State
+  // ============================================================
+  const state = {
+    tower: null, floor: null, room: null,
+    roomDetail: null, work: null, pic: '', description: '', photo: null,
+  };
+
+  const TOTAL_FIELDS = 8; // including Room (skipped for towers without rooms)
+
+  function towerHasRooms() {
+    return !!(state.tower && DATA.towerData[state.tower]?.rooms?.length);
+  }
+
+  // ============================================================
+  //  Debug
+  // ============================================================
+  let debugLog = [];
+  function dbg(msg) {
+    const t = new Date().toISOString().slice(11, 23);
+    debugLog.push(`[${t}] ${msg}`);
+    const p = document.getElementById('debugPanel');
+    if (p) p.textContent = debugLog.join('\n');
+    console.log(msg);
+  }
+  function toggleDebug() {
+    const p = document.getElementById('debugPanel');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // ============================================================
+  //  JSONP per sheet (sequential, setResponse override)
+  // ============================================================
+  function fetchSheet(tab) {
+    return new Promise((resolve, reject) => {
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
+      dbg(`Fetching sheet "${tab}"`);
+
+      const timer = setTimeout(() => {
+        window.google.visualization.Query.setResponse = null;
+        document.getElementById('_s_' + tab)?.remove();
+        reject(new Error('timeout:' + tab));
+      }, 12000);
+
+      window.google = window.google || {};
+      window.google.visualization = window.google.visualization || {};
+      window.google.visualization.Query = window.google.visualization.Query || {};
+      window.google.visualization.Query.setResponse = function(json) {
+        clearTimeout(timer);
+        window.google.visualization.Query.setResponse = null;
+        document.getElementById('_s_' + tab)?.remove();
+        dbg(`Sheet "${tab}" → callback received, status: ${json.status}`);
+        if (json.status === 'error') {
+          reject(new Error('gviz error: ' + (json.errors?.[0]?.message || 'unknown')));
+        } else {
+          resolve(json);
+        }
+      };
+
+      const script = document.createElement('script');
+      script.id = '_s_' + tab;
+      script.src = url;
+      script.onerror = () => {
+        clearTimeout(timer);
+        window.google.visualization.Query.setResponse = null;
+        reject(new Error('load-error:' + tab));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  function parseSheet(json, tab) {
+    const rows = json.table.rows;
+    const cols = json.table.cols;
+    dbg(`Sheet "${tab}" cols: ${cols.map(c => '"' + c.label + '"').join(', ')}`);
+
+    const hasLabels = cols.some(c => c.label && c.label.trim() !== '');
+    dbg(`Sheet "${tab}" hasLabels: ${hasLabels}`);
+
+    let colIdx;
+    if (hasLabels) {
+      colIdx = {};
+      cols.forEach((c, i) => { colIdx[c.label.trim()] = i; });
+    } else {
+      // gviz returned empty labels (header row not recognized).
+      // Use positional mapping: 5-col sheets have Room, 4-col sheets don't.
+      dbg(`Sheet "${tab}": positional fallback (${cols.length} cols)`);
+      colIdx = cols.length >= 5
+        ? { 'Tower': 0, 'Floor': 1, 'Room': 2, 'Room detailed': 3, 'Work category': 4 }
+        : { 'Tower': 0, 'Floor': 1, 'Room detailed': 2, 'Work category': 3 };
+    }
+
+    const extract = key => [...new Set(
+      rows.map(r => {
+        const ci = colIdx[key];
+        if (ci === undefined) return null;
+        return r.c[ci]?.v ? String(r.c[ci].v).trim() : null;
+      }).filter(Boolean)
+    )];
+
+    const towerName = extract('Tower')[0] || tab;
+    const floors     = extract('Floor');
+    const rooms      = extract('Room');
+    const roomDetail = extract('Room detailed').sort((a, b) => a.localeCompare(b));
+    const workCat    = extract('Work category');
+
+    dbg(`Sheet "${tab}" → tower:"${towerName}" floors:${floors.length} rooms:${rooms.length} rd:${roomDetail.length} wc:${workCat.length}`);
+    return { towerName, floors, rooms, roomDetail, workCat };
+  }
+
+  // ============================================================
+  //  Sync all sheets sequentially (setResponse only handles one at a time)
+  // ============================================================
+  async function syncAllSheets() {
+    setSyncStatus('loading', 'Syncing...');
+    debugLog = [];
+    dbg('Fetching ' + SHEET_TABS.length + ' sheets: ' + SHEET_TABS.join(', '));
+
+    const results = [];
+    for (const tab of SHEET_TABS) {
+      try {
+        const json = await fetchSheet(tab);
+        results.push({ ok: true, tab, json });
+      } catch (err) {
+        results.push({ ok: false, tab, err: err.message });
+      }
+    }
+
+    const newData = JSON.parse(JSON.stringify(FALLBACK));
+    let anyOk = false;
+
+    results.forEach(r => {
+      if (!r.ok) { dbg(`FAILED "${r.tab}": ${r.err}`); return; }
+      try {
+        const p = parseSheet(r.json, r.tab);
+        anyOk = true;
+        newData[p.towerName] = {
+          floors:     p.floors.length     ? p.floors     : (newData[p.towerName]?.floors     || []),
+          rooms:      p.rooms,
+          roomDetail: p.roomDetail.length ? p.roomDetail : (newData[p.towerName]?.roomDetail || []),
+        };
+        if (p.workCat.length) DATA.workCategory = p.workCat;
+      } catch (e) {
+        dbg(`PARSE ERR "${r.tab}": ${e.message}`);
+      }
+    });
+
+    DATA.towerData = newData;
+    dbg('Towers loaded: ' + JSON.stringify(Object.keys(DATA.towerData)));
+
+    // Render Tower and Work Category (always available)
+    revealOptions('tower-options', 'tower-skeleton');
+    renderOptions('tower-options', Object.keys(DATA.towerData), 'tower', 'col3');
+    revealOptions('work-options', 'work-skeleton');
+    renderOptions('work-options', DATA.workCategory, 'work', 'col1');
+
+    // Re-render any fields that were already selected
+    if (state.tower) updateFieldsByTower(false);
+
+    if (anyOk) {
+      setSyncStatus('ok', 'Live');
+      setCardTag('roomDetailSync', 'Live');
+      setCardTag('workSync', 'Live');
+    } else {
+      setSyncStatus('error', 'Offline');
+      setCardTag('roomDetailSync', 'Cached');
+      setCardTag('workSync', 'Cached');
+      document.getElementById('fetchError').classList.add('show');
+    }
+  }
+
+  // ============================================================
+  //  Update Floor / Room / RoomDetailed when Tower changes
+  // ============================================================
+  function updateFieldsByTower(resetChildren = true) {
+    const tower = state.tower;
+    const td = DATA.towerData[tower];
+
+    if (resetChildren) {
+      state.floor = null; state.room = null; state.roomDetail = null;
+      updateBadge('floor'); updateBadge('room'); updateBadge('roomDetail');
+    }
+
+    if (!tower || !td) {
+      showPlaceholder('floor');
+      showPlaceholder('room');
+      showPlaceholder('roomdetail');
+      return;
+    }
+
+    // Floor
+    renderField('floor-options', 'floor-placeholder', td.floors, 'floor', 'col4');
+
+    // Room — hide card entirely if no rooms for this tower
+    const hasRooms = td.rooms.length > 0;
+    document.getElementById('card3').classList.toggle('card-hidden', !hasRooms);
+    if (!hasRooms) {
+      state.room = 'N/A';
+      document.getElementById('badge3').textContent = '✓';
+      document.getElementById('badge3').classList.add('done');
+    } else {
+      if (resetChildren) state.room = null;
+      renderField('room-options', 'room-placeholder', td.rooms, 'room', 'col4');
+      updateBadge('room');
+    }
+
+    // Room Detailed
+    renderField('roomdetail-options', 'roomdetail-placeholder', td.roomDetail, 'roomDetail', 'col2');
+
+    updateProgress();
+  }
+
+  // ============================================================
+  //  Render helpers
+  // ============================================================
+  function renderOptions(containerId, items, stateKey, colClass) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = '';
+    el.className = 'options-grid ' + (colClass || '');
+    items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn' + (state[stateKey] === item ? ' selected' : '');
+      btn.textContent = item;
+      btn.onclick = () => selectOption(stateKey, item, containerId);
+      el.appendChild(btn);
+    });
+  }
+
+  function revealOptions(optionsId, skeletonId) {
+    if (skeletonId) document.getElementById(skeletonId).style.display = 'none';
+    document.getElementById(optionsId).style.display = '';
+  }
+
+  function showPlaceholder(field) {
+    const ph  = document.getElementById(field + '-placeholder') || document.getElementById(field + 'detail-placeholder');
+    const opt = document.getElementById(field + '-options')     || document.getElementById(field + 'detail-options');
+    if (ph)  ph.style.display  = '';
+    if (opt) opt.style.display = 'none';
+  }
+
+  function renderField(optId, phId, items, stateKey, colClass) {
+    document.getElementById(phId).style.display  = 'none';
+    document.getElementById(optId).style.display = '';
+    renderOptions(optId, items, stateKey, colClass);
+  }
+
+  function selectOption(key, value, containerId) {
+    state[key] = value;
+    document.getElementById(containerId).querySelectorAll('.option-btn').forEach(b => {
+      b.classList.toggle('selected', b.textContent === value);
+    });
+    hideError('err-' + ERR_KEY[key]);
+    updateBadge(key);
+    updateProgress();
+
+    if (key === 'tower') updateFieldsByTower(true);
+  }
+
+  const ERR_KEY = { tower:'tower', floor:'floor', room:'room', roomDetail:'roomdetail', work:'work' };
+
+  function updateBadge(key) {
+    const MAP = { tower:1, floor:2, room:3, roomDetail:4, work:5 };
+    const idx = MAP[key]; if (!idx) return;
+    const b = document.getElementById('badge' + idx);
+    const done = !!state[key];
+    b.textContent = done ? '✓' : idx;
+    b.classList.toggle('done', done);
+  }
+
+  function updateProgress() {
+    const hasRooms = towerHasRooms();
+    const total = hasRooms ? TOTAL_FIELDS : TOTAL_FIELDS - 1;
+    const done = [
+      state.tower,
+      state.floor,
+      hasRooms ? state.room : 'skip',
+      state.roomDetail,
+      state.work,
+      state.pic.trim() || null,
+      state.description.trim() || null,
+      state.photo,
+    ].filter(v => v && v !== null).length;
+    const pct = Math.round((done / total) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent  = pct + '%';
+    document.getElementById('progressText').textContent = `${done} / ${total} completed`;
+  }
+
+  // ============================================================
+  //  Textarea
+  // ============================================================
+  function updatePic() {
+    const val = document.getElementById('pic').value;
+    state.pic = val;
+    const b = document.getElementById('badge6');
+    b.textContent = val.trim() ? '✓' : '6';
+    b.classList.toggle('done', !!val.trim());
+    updateProgress();
+  }
+
+  function updateCharCount() {
+    const val = document.getElementById('description').value;
+    state.description = val;
+    document.getElementById('charCount').textContent = val.length;
+    const b = document.getElementById('badge7');
+    b.textContent = val.trim() ? '✓' : '7';
+    b.classList.toggle('done', !!val.trim());
+    updateProgress();
+  }
+
+  // ============================================================
+  //  Photo
+  // ============================================================
+  const MAX_SIZE = 100 * 1024 * 1024;
+  function handlePhoto(e) {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.size > MAX_SIZE) {
+      showError('err-photo', 'File exceeds 100MB. Please select a smaller file.');
+      e.target.value = ''; return;
+    }
+    hideError('err-photo');
+    state.photo = file;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('previewImg').src = ev.target.result;
+      document.getElementById('previewWrap').classList.add('show');
+      document.getElementById('uploadZone').classList.add('has-file');
+      document.getElementById('photoInfo').textContent = `${file.name}  (${(file.size/1024/1024).toFixed(1)} MB)`;
+      document.getElementById('badge8').textContent = '✓';
+      document.getElementById('badge8').classList.add('done');
+      updateProgress();
+    };
+    reader.readAsDataURL(file);
+  }
+  function removePhoto() {
+    state.photo = null;
+    document.getElementById('photoInput').value = '';
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewWrap').classList.remove('show');
+    document.getElementById('uploadZone').classList.remove('has-file');
+    document.getElementById('photoInfo').textContent = '';
+    document.getElementById('badge8').textContent = '8';
+    document.getElementById('badge8').classList.remove('done');
+    updateProgress();
+  }
+
+  // ============================================================
+  //  Validation & Submit
+  // ============================================================
+  function showError(id, msg) { const e = document.getElementById(id); if (msg) e.textContent = msg; e.classList.add('show'); }
+  function hideError(id) { document.getElementById(id).classList.remove('show'); }
+
+  async function submitForm() {
+    // — Validate —
+    let valid = true;
+    const checks = [
+      { k:'tower',      e:'err-tower',      m:'Please select a Tower.' },
+      { k:'floor',      e:'err-floor',      m:'Please select a Floor.' },
+      { k:'roomDetail', e:'err-roomdetail', m:'Please select Room Detailed.' },
+      { k:'work',       e:'err-work',       m:'Please select a Work Category.' },
+    ];
+    if (towerHasRooms()) checks.splice(2, 0, { k:'room', e:'err-room', m:'Please select a Room.' });
+    checks.forEach(({ k, e, m }) => {
+      if (!state[k]) { showError(e, m); valid = false; } else hideError(e);
+    });
+    if (!valid) { document.querySelector('.error-msg.show')?.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
+
+    // — Check Apps Script URL —
+    if (!APPS_SCRIPT_URL) {
+      showUploadErr('Apps Script URL is not configured. Please deploy Code.gs and add the URL to index.html → APPS_SCRIPT_URL.');
+      return;
+    }
+
+    // — Start upload —
+    const btn  = document.getElementById('submitBtn');
+    const prog = document.getElementById('uploadProgress');
+    btn.disabled = true;
+    btn.textContent = 'Uploading...';
+    prog.classList.add('show');
+    document.getElementById('uploadErr').classList.remove('show');
+
+    try {
+      let fileBase64 = null, fileName = null, fileMime = null;
+      if (state.photo) {
+        fileBase64 = await fileToBase64(state.photo);
+        fileName   = state.photo.name;
+        fileMime   = state.photo.type || 'image/jpeg';
+      }
+
+      const payload = {
+        type:         'report',
+        fileBase64,
+        fileName,
+        mimeType:     fileMime,
+        tower:        state.tower,
+        floor:        state.floor,
+        room:         towerHasRooms() ? state.room : '',
+        roomDetail:   state.roomDetail,
+        workCategory: state.work,
+        pic:          state.pic || '',
+        description:  state.description || '',
+      };
+
+      dbg('Submitting report to Apps Script...');
+      const res  = await fetch(APPS_SCRIPT_URL, {
+        method:  'POST',
+        body:    JSON.stringify(payload),
+        headers: { 'Content-Type': 'text/plain' },
+      });
+      const json = await res.json();
+      dbg('Response: ' + JSON.stringify(json));
+
+      if (!json.ok) throw new Error(json.error || 'Submission failed');
+
+      prog.classList.remove('show');
+      document.getElementById('mainForm').style.display = 'none';
+      document.getElementById('successScreen').classList.add('show');
+      window.scrollTo(0, 0);
+
+    } catch (err) {
+      dbg('Submit error: ' + err.message);
+      prog.classList.remove('show');
+      showUploadErr('Submission failed: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = 'Submit';
+    }
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result.split(',')[1]);
+      reader.onerror = () => reject(new Error('FileReader error'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function showUploadErr(msg) {
+    const el = document.getElementById('uploadErr');
+    el.textContent = '⚠️ ' + msg;
+    el.classList.add('show');
+  }
+
+  function resetForm() {
+    Object.keys(state).forEach(k => { state[k] = (k === 'description' || k === 'pic') ? '' : null; });
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.step-badge').forEach((b, i) => { b.textContent = i + 1; b.classList.remove('done'); });
+    document.getElementById('card3').classList.remove('card-hidden');
+    ['floor','room','roomdetail'].forEach(f => showPlaceholder(f));
+    document.getElementById('pic').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('charCount').textContent = '0';
+    removePhoto();
+    document.querySelectorAll('.error-msg').forEach(e => e.classList.remove('show'));
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('progressPct').textContent = '0%';
+    document.getElementById('progressText').textContent = 'Progress';
+    document.getElementById('successScreen').classList.remove('show');
+    document.getElementById('mainForm').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  // ============================================================
+  //  Status helpers
+  // ============================================================
+  function setSyncStatus(type, text) {
+    document.getElementById('syncDot').className = 'sync-dot ' + type;
+    document.getElementById('syncText').textContent = text;
+  }
+  function setCardTag(id, label) { document.getElementById(id).textContent = label; }
+
+  // ============================================================
+  //  Init
+  // ============================================================
+  // Tower and Work show skeleton while fetching; others show placeholder
+  // (skeletons already visible in HTML; placeholders already visible for floor/room/roomdetail)
+
+  syncAllSheets();
+</script>
+</body>
+</html>
