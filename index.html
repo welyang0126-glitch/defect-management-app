@@ -208,10 +208,22 @@
       <div class="error-msg" id="err-roomdetail">Please select Room Detailed.</div>
     </div>
 
-    <!-- 5. Work Category -->
+    <!-- 5. Works -->
     <div class="card" id="card5">
       <div class="card-header">
         <div class="step-badge" id="badge5">5</div>
+        <div class="card-title">Works <span class="required-mark">*</span></div>
+        <div class="card-tag" id="worksSync"></div>
+      </div>
+      <div id="works-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Tower first</div>
+      <div id="works-options" class="options-grid col3" style="display:none"></div>
+      <div class="error-msg" id="err-works">Please select Works.</div>
+    </div>
+
+    <!-- 6. Work Category -->
+    <div class="card" id="card6">
+      <div class="card-header">
+        <div class="step-badge" id="badge6">6</div>
         <div class="card-title">Work Category <span class="required-mark">*</span></div>
         <div class="card-tag" id="workSync"></div>
       </div>
@@ -222,10 +234,10 @@
       <div class="error-msg" id="err-work">Please select a Work Category.</div>
     </div>
 
-    <!-- 6. Person In Charge -->
-    <div class="card" id="card6">
+    <!-- 7. Person In Charge -->
+    <div class="card" id="card7">
       <div class="card-header">
-        <div class="step-badge" id="badge6">6</div>
+        <div class="step-badge" id="badge7">7</div>
         <div class="card-title">Person In Charge</div>
       </div>
       <div class="textarea-wrap">
@@ -235,10 +247,10 @@
       </div>
     </div>
 
-    <!-- 7. Description -->
-    <div class="card" id="card7">
+    <!-- 8. Description -->
+    <div class="card" id="card8">
       <div class="card-header">
-        <div class="step-badge" id="badge7">7</div>
+        <div class="step-badge" id="badge8">8</div>
         <div class="card-title">Description</div>
       </div>
       <div class="textarea-wrap">
@@ -247,10 +259,10 @@
       </div>
     </div>
 
-    <!-- 8. Photo -->
-    <div class="card" id="card8">
+    <!-- 9. Photo -->
+    <div class="card" id="card9">
       <div class="card-header">
-        <div class="step-badge" id="badge8">8</div>
+        <div class="step-badge" id="badge9">9</div>
         <div class="card-title">Photo Attachment</div>
       </div>
       <div class="photo-wrap">
@@ -314,26 +326,31 @@
       floors: ['1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','21F','22F','23F','24F','25F','26F'],
       rooms: ['1','2','3','4','5','6','7'],
       roomDetail: ['AD/PS','AD/PS/ST/AV','AMENITY(POOL)','BATH ROOM','BEDROOM','BELOW PILOTI','DISABLED TOILET','DRESS ROOM','DUMP','ELEV. HALL / AISLE','EPS/TPS','Equipment Entrance','FCC','FIRE PUMP SYSTEM ROOM','KITCHEN','LAUNDRY ROOM','LIVING ROOM','LOCKER ROOM','LOGGIA','MECH.ROOM','MECH.ROOM (SAUNA)','PANTRY / W.I.C','ROOF','SHOWER ROOM','STAIRCASE','STR/FF EV VESTIBULE','TOILET'],
+      works: ['CIV','MEP','Safety'],
     },
     'F tower': {
       floors: ['1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','21F','22F','23F','24F','25F','26F'],
       rooms: ['1','2','3','4','5','6','7'],
       roomDetail: ['AD/PS','AD/PS/ST/AV','ADMIN.OFFICE','AISLE','AMENITY','BATH ROOM','BEDROOM','BELOW PILOTI','DRESS ROOM','DUMP','ELEV. HALL','EPS/TPS','ENTRANCE','FIRE PUMP SYSTEM ROOM','KITCHEN','LAUNDRY ROOM','LIVING ROOM','LOBBY','LOGGIA','MDF','MECH.ROOM','MECH.STAIR','PANTRY / W.I.C','ROOF','SECURITY OFFICE','STAIRCASE','STR/FF EV VESTIBULE','TOILET'],
+      works: ['CIV','MEP','Safety'],
     },
     'Office': {
       floors: ['1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F'],
       rooms: [],
       roomDetail: ['AD/PS/ST/AV','AISLE','AMENITY(for office)','BELOW PILOTI','DISABLED TOILET','ELEV. HALL','EPS/TPS','FCC','FIRE EQUIPMENT STORAGE','FIRE TANK ROOM','LOBBY','MECH.ROOM (E/V)','MECH.STAIR','MEETING ROOM','OFFICE','OFFICE AISLE','ROOF','TECHNICAL AREA','TOILET'],
+      works: ['CIV','MEP','Safety'],
     },
     'Commercial': {
       floors: ['1F','2F','3F'],
       rooms: [],
       roomDetail: ['AD/PS/ST/AV','BELOW PILOTI','COMMERCIAL OUTDOOR UNIT AREA','EPS/TPS','LOGGIA','ROOF','STAIRCASE','STR/FF EV VESTIBULE','TOILET'],
+      works: ['CIV','MEP','Safety'],
     },
     'Basement': {
       floors: ['B1F','B2F'],
       rooms: [],
       roomDetail: ['AD/PS/ST/AV','BASEMENT ENTRANCE','DA','ELEV. HALL','ELEV.PIT','EPS/ TPS','EXTERNAL SIDE OF BASEMENT WALL','FAN ROOM','FIRE EXTINGUISHING ROOM','FIRE TANK PUMP ROOM','FIRE TANK ROOM','GARBAGE DUMP','GENERATOR ROOM','MCC PANEL ROOM','MECH.ROOM','MECH.STAIR & RAMP','OIL TANK','OUTDOOR GROUND','OUTDOOR STAIR(LANDING)','OUTDOOR STAIR(STEP) & RAMP','PARKING','PIT','RAMP','RAMP VESTIBULE','SECURITY OFFICE','SECURITY OFFICE ROOF','SECURITY OFFICE TOILET','SEWAGE','SEWAGE TREATMENT TANK','SEWAGE VESTIBULE','STAIRCASE','STAIRCASE ROOF','STR/FF EV VESTIBULE','STORAGE FOR INFLAMMABLE MATERIAL','SUMP PIT','SWIMMING POOL','TRANSFORMER ROOM HV/LV'],
+      works: ['CIV','MEP','Safety'],
     },
   };
 
@@ -347,10 +364,10 @@
   // ============================================================
   const state = {
     tower: null, floor: null, room: null,
-    roomDetail: null, work: null, pic: '', description: '', photo: null,
+    roomDetail: null, works: null, work: null, pic: '', description: '', photo: null,
   };
 
-  const TOTAL_FIELDS = 8; // including Room (skipped for towers without rooms)
+  const TOTAL_FIELDS = 9; // including Room (skipped for towers without rooms)
 
   function towerHasRooms() {
     return !!(state.tower && DATA.towerData[state.tower]?.rooms?.length);
@@ -427,11 +444,13 @@
       cols.forEach((c, i) => { colIdx[c.label.trim()] = i; });
     } else {
       // gviz returned empty labels (header row not recognized).
-      // Use positional mapping: 5-col sheets have Room, 4-col sheets don't.
+      // Positional mapping based on tower type:
+      // E/F (5-col): Floor, Room, Room detailed, Works, Work category
+      // O/C/B (4-col): Floor, Room detailed, Works, Work category
       dbg(`Sheet "${tab}": positional fallback (${cols.length} cols)`);
       colIdx = cols.length >= 5
-        ? { 'Tower': 0, 'Floor': 1, 'Room': 2, 'Room detailed': 3, 'Work category': 4 }
-        : { 'Tower': 0, 'Floor': 1, 'Room detailed': 2, 'Work category': 3 };
+        ? { 'Floor': 0, 'Room': 1, 'Room detailed': 2, 'Works': 3, 'Work category': 4 }
+        : { 'Floor': 0, 'Room detailed': 1, 'Works': 2, 'Work category': 3 };
     }
 
     const extract = key => [...new Set(
@@ -442,16 +461,17 @@
       }).filter(Boolean)
     )];
 
-    const TOWER_NAME_MAP = { 'E': 'E tower', 'F': 'F tower' };
+    const TOWER_NAME_MAP = { 'E': 'E tower', 'F': 'F tower', 'O': 'Office', 'C': 'Commercial', 'B': 'Basement' };
     const rawTower = extract('Tower')[0] || tab;
     const towerName = TOWER_NAME_MAP[rawTower] || rawTower;
     const floors     = extract('Floor');
     const rooms      = extract('Room');
     const roomDetail = extract('Room detailed').sort((a, b) => a.localeCompare(b));
+    const works      = extract('Works');
     const workCat    = extract('Work category');
 
-    dbg(`Sheet "${tab}" → tower:"${towerName}" floors:${floors.length} rooms:${rooms.length} rd:${roomDetail.length} wc:${workCat.length}`);
-    return { towerName, floors, rooms, roomDetail, workCat };
+    dbg(`Sheet "${tab}" → tower:"${towerName}" floors:${floors.length} rooms:${rooms.length} rd:${roomDetail.length} works:${works.length} wc:${workCat.length}`);
+    return { towerName, floors, rooms, roomDetail, works, workCat };
   }
 
   // ============================================================
@@ -484,6 +504,7 @@
           floors:     p.floors.length     ? p.floors     : (newData[p.towerName]?.floors     || []),
           rooms:      p.rooms,
           roomDetail: p.roomDetail.length ? p.roomDetail : (newData[p.towerName]?.roomDetail || []),
+          works:      p.works.length      ? p.works      : (newData[p.towerName]?.works      || ['CIV','MEP','Safety']),
         };
         if (p.workCat.length) DATA.workCategory = p.workCat;
       } catch (e) {
@@ -524,14 +545,15 @@
     const td = DATA.towerData[tower];
 
     if (resetChildren) {
-      state.floor = null; state.room = null; state.roomDetail = null;
-      updateBadge('floor'); updateBadge('room'); updateBadge('roomDetail');
+      state.floor = null; state.room = null; state.roomDetail = null; state.works = null;
+      updateBadge('floor'); updateBadge('room'); updateBadge('roomDetail'); updateBadge('works');
     }
 
     if (!tower || !td) {
       showPlaceholder('floor');
       showPlaceholder('room');
       showPlaceholder('roomdetail');
+      showPlaceholder('works');
       return;
     }
 
@@ -553,6 +575,11 @@
 
     // Room Detailed
     renderField('roomdetail-options', 'roomdetail-placeholder', td.roomDetail, 'roomDetail', 'col2');
+
+    // Works
+    const worksData = td.works && td.works.length ? td.works : ['CIV','MEP','Safety'];
+    renderField('works-options', 'works-placeholder', worksData, 'works', 'col3');
+    setCardTag('worksSync', DATA.towerData[tower]?.works?.length ? 'Live' : 'Cached');
 
     updateProgress();
   }
@@ -603,10 +630,10 @@
     if (key === 'tower') updateFieldsByTower(true);
   }
 
-  const ERR_KEY = { tower:'tower', floor:'floor', room:'room', roomDetail:'roomdetail', work:'work' };
+  const ERR_KEY = { tower:'tower', floor:'floor', room:'room', roomDetail:'roomdetail', works:'works', work:'work' };
 
   function updateBadge(key) {
-    const MAP = { tower:1, floor:2, room:3, roomDetail:4, work:5 };
+    const MAP = { tower:1, floor:2, room:3, roomDetail:4, works:5, work:6 };
     const idx = MAP[key]; if (!idx) return;
     const b = document.getElementById('badge' + idx);
     const done = !!state[key];
@@ -622,6 +649,7 @@
       state.floor,
       hasRooms ? state.room : 'skip',
       state.roomDetail,
+      state.works,
       state.work,
       state.pic.trim() || null,
       state.description.trim() || null,
@@ -639,8 +667,8 @@
   function updatePic() {
     const val = document.getElementById('pic').value;
     state.pic = val;
-    const b = document.getElementById('badge6');
-    b.textContent = val.trim() ? '✓' : '6';
+    const b = document.getElementById('badge7');
+    b.textContent = val.trim() ? '✓' : '7';
     b.classList.toggle('done', !!val.trim());
     updateProgress();
   }
@@ -649,8 +677,8 @@
     const val = document.getElementById('description').value;
     state.description = val;
     document.getElementById('charCount').textContent = val.length;
-    const b = document.getElementById('badge7');
-    b.textContent = val.trim() ? '✓' : '7';
+    const b = document.getElementById('badge8');
+    b.textContent = val.trim() ? '✓' : '8';
     b.classList.toggle('done', !!val.trim());
     updateProgress();
   }
@@ -673,8 +701,8 @@
       document.getElementById('previewWrap').classList.add('show');
       document.getElementById('uploadZone').classList.add('has-file');
       document.getElementById('photoInfo').textContent = `${file.name}  (${(file.size/1024/1024).toFixed(1)} MB)`;
-      document.getElementById('badge8').textContent = '✓';
-      document.getElementById('badge8').classList.add('done');
+      document.getElementById('badge9').textContent = '✓';
+      document.getElementById('badge9').classList.add('done');
       updateProgress();
     };
     reader.readAsDataURL(file);
@@ -686,8 +714,8 @@
     document.getElementById('previewWrap').classList.remove('show');
     document.getElementById('uploadZone').classList.remove('has-file');
     document.getElementById('photoInfo').textContent = '';
-    document.getElementById('badge8').textContent = '8';
-    document.getElementById('badge8').classList.remove('done');
+    document.getElementById('badge9').textContent = '9';
+    document.getElementById('badge9').classList.remove('done');
     updateProgress();
   }
 
@@ -704,6 +732,7 @@
       { k:'tower',      e:'err-tower',      m:'Please select a Tower.' },
       { k:'floor',      e:'err-floor',      m:'Please select a Floor.' },
       { k:'roomDetail', e:'err-roomdetail', m:'Please select Room Detailed.' },
+      { k:'works',      e:'err-works',      m:'Please select Works.' },
       { k:'work',       e:'err-work',       m:'Please select a Work Category.' },
     ];
     if (towerHasRooms()) checks.splice(2, 0, { k:'room', e:'err-room', m:'Please select a Room.' });
@@ -743,6 +772,7 @@
         floor:        state.floor,
         room:         towerHasRooms() ? state.room : '',
         roomDetail:   state.roomDetail,
+        works:        state.works,
         workCategory: state.work,
         pic:          state.pic || '',
         description:  state.description || '',
@@ -793,7 +823,7 @@
     document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('.step-badge').forEach((b, i) => { b.textContent = i + 1; b.classList.remove('done'); });
     document.getElementById('card3').classList.remove('card-hidden');
-    ['floor','room','roomdetail'].forEach(f => showPlaceholder(f));
+    ['floor','room','roomdetail','works'].forEach(f => showPlaceholder(f));
     document.getElementById('pic').value = '';
     document.getElementById('description').value = '';
     document.getElementById('charCount').textContent = '0';
