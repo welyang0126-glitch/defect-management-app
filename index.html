@@ -316,7 +316,7 @@
   // Sheet tab name → fetched and parsed into towerData
   const SHEET_TABS = ['E', 'F', 'O', 'C', 'B'];
 
-  const WORK_CATEGORY = ['Ricons', 'Eunmin S&D', 'Daeshin', 'Hyundai Elevator'];
+  const WORK_CATEGORY = ['Ricons', 'Eunmin S&D', 'Daeshin', 'Hyundai Elevator', 'Jungdo'];
 
   // ============================================================
   //  Fallback per-tower data (used if sync fails)
@@ -467,8 +467,8 @@
     const floors     = extract('Floor');
     const rooms      = extract('Room');
     const roomDetail = extract('Room detailed').sort((a, b) => a.localeCompare(b));
-    const works      = extract('Works');
-    const workCat    = extract('Work category');
+    const works      = extract('Works').filter(v => v.toLowerCase() !== 'works');
+    const workCat    = extract('Work category').filter(v => v.toLowerCase() !== 'work category');
 
     dbg(`Sheet "${tab}" → tower:"${towerName}" floors:${floors.length} rooms:${rooms.length} rd:${roomDetail.length} works:${works.length} wc:${workCat.length}`);
     return { towerName, floors, rooms, roomDetail, works, workCat };
