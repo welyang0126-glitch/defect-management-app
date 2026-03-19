@@ -1,11 +1,11 @@
 // ================================================================
 //  Defect System API — Google Apps Script Web App
 //
-//  열 구조 (Sheet1 확인 기준):
-//  A=ID  B=Time(before)  C=Time(after)  D=Tower  E=Floor
-//  F=Room  G=Room detailed  H=Work category  I=Description(O)
-//  J=Description(E)  K=PIC  L=Photo(before)  M=Photo(after)
-//  N=Status  O=approved
+//  열 구조 (시트1):
+//  A=ID  B=Time(before)  C=Time(after)  D=Tower  E=Floor  F=Room
+//  G=Room detailed  H=Works(CIV/MEP/Safety)  I=Work category
+//  J=Description(O)  K=Description(E)  L=PIC
+//  M=Photo(before)  N=Photo(after)  O=Status  P=approved
 //
 //  배포 방법:
 //  1. https://script.google.com → 새 프로젝트 → 코드 붙여넣기
@@ -30,15 +30,15 @@ const COL = {
   FLOOR:        5,   // E
   ROOM:         6,   // F
   ROOM_DETAIL:  7,   // G
-  WORK_CAT:     8,   // H  ← Works (CIV/MEP/Safety)
-  DESC_O:       9,   // I
-  DESC_E:       10,  // J
-  PIC:          11,  // K
-  PHOTO_BEFORE: 12,  // L
-  PHOTO_AFTER:  13,  // M
-  STATUS:       14,  // N
-  APPROVED:     15,  // O
-  WORK_SUBCAT:  16,  // P  ← Work Category (Ricons/Eunmin S&D 등)
+  WORKS:        8,   // H  ← Works (CIV/MEP/Safety)
+  WORK_CAT:     9,   // I  ← Work Category (Ricons/Eunmin S&D 등)
+  DESC_O:       10,  // J  ← Description 원문
+  DESC_E:       11,  // K  ← Description 영어 번역
+  PIC:          12,  // L  ← Person In Charge
+  PHOTO_BEFORE: 13,  // M  ← Photo(before)
+  PHOTO_AFTER:  14,  // N  ← Photo(after)
+  STATUS:       15,  // O  ← Status
+  APPROVED:     16,  // P  ← approved
 };
 
 // ----------------------------------------------------------------
@@ -208,22 +208,22 @@ function handleReport(p) {
   // 4. 신규 행 추가
   const sheet = getSheet();
   sheet.appendRow([
-    recordId,                    // A: ID
-    formatDateTime(new Date()), // B: Time(before)
-    '',                 // C: Time(after)
-    tower        || '', // D: Tower
-    floor        || '', // E: Floor
-    room         || '', // F: Room
-    roomDetail   || '', // G: Room detailed
-    works        || '', // H: Works (CIV/MEP/Safety)
-    description  || '', // I: Description(O)
-    descEng,            // J: Description(E)
-    pic          || '', // K: PIC
-    fileUrl,            // L: Photo(before)
-    '',                 // M: Photo(after)
-    'To be',            // N: Status
-    '',                 // O: approved
-    workCategory || '', // P: Work category (Ricons/Eunmin S&D 등)
+    recordId,                   // A (1):  ID
+    formatDateTime(new Date()), // B (2):  Time(before)
+    '',                         // C (3):  Time(after)
+    tower        || '',         // D (4):  Tower
+    floor        || '',         // E (5):  Floor
+    room         || '',         // F (6):  Room
+    roomDetail   || '',         // G (7):  Room detailed
+    works        || '',         // H (8):  Works (CIV/MEP/Safety)
+    workCategory || '',         // I (9):  Work category (Ricons/Eunmin S&D 등)
+    description  || '',         // J (10): Description 원문
+    descEng,                    // K (11): Description 영어 번역
+    pic          || '',         // L (12): Person In Charge
+    fileUrl,                    // M (13): Photo(before)
+    '',                         // N (14): Photo(after)
+    'To be',                    // O (15): Status
+    '',                         // P (16): approved
   ]);
 
   return corsResponse({ ok: true, url: fileUrl, recordId });
