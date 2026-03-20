@@ -3,8 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "com.antigravity.k8defect",
-    "sha256_cert_fingerprints": [
-      "PASTE_YOUR_SHA256_FINGERPRINT_HERE"
-    ]
+    "sha256_cert_fingerprints": ["5A:3D:91:92:DF:CB:01:97:AD:5A:C3:4B:53:DF:31:31:B7:E0:B4:E8:2E:42:CF:3C:5D:E0:4C:BF:F3:45:8E:E1"]
   }
 }]
