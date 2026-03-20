@@ -985,6 +985,11 @@
   } else {
     syncSheet();
   }
+
+  // Service Worker 등록 (PWA/TWA)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
 </script>
 </body>
 </html>

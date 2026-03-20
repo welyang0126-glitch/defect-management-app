@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="#1a56db"/>
+
+  <!-- Building silhouette -->
+  <rect x="100" y="210" width="130" height="200" fill="#ffffff" opacity="0.18" rx="4"/>
+  <rect x="280" y="160" width="130" height="250" fill="#ffffff" opacity="0.18" rx="4"/>
+  <!-- Building top line -->
+  <rect x="85" y="207" width="160" height="6" fill="#ffffff" opacity="0.35" rx="3"/>
+  <rect x="265" y="157" width="160" height="6" fill="#ffffff" opacity="0.35" rx="3"/>
+
+  <!-- K8 text -->
+  <text
+    x="256" y="285"
+    font-family="Arial Black, Arial, sans-serif"
+    font-size="210"
+    font-weight="900"
+    fill="#ffffff"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    letter-spacing="-8"
+  >K8</text>
+
+  <!-- Accent underline -->
+  <rect x="96" y="350" width="320" height="10" fill="#ffffff" opacity="0.4" rx="5"/>
+
+  <!-- Sub label -->
+  <text
+    x="256" y="400"
+    font-family="Arial, sans-serif"
+    font-size="34"
+    font-weight="700"
+    fill="#ffffff"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    opacity="0.85"
+    letter-spacing="3"
+  >DEFECT MGT</text>
+</svg>

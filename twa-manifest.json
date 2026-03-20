@@ -1,0 +1,31 @@
+{
+  "packageId": "com.antigravity.k8defect",
+  "host": "defect-management-app.vercel.app",
+  "name": "K8 Defect Management",
+  "launcherName": "K8 Defect",
+  "display": "standalone",
+  "themeColor": "#1a56db",
+  "backgroundColor": "#ffffff",
+  "startUrl": "/",
+  "iconUrl": "https://defect-management-app.vercel.app/icon.svg",
+  "maskableIconUrl": "https://defect-management-app.vercel.app/icon.svg",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "orientation": "portrait",
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://defect-management-app.vercel.app/manifest.json",
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "features": {
+    "playBilling": { "enabled": false }
+  },
+  "alphaDependencies": { "enabled": false },
+  "enableNotifications": false,
+  "enableSiteSettingsShortcut": true,
+  "fallbackType": "customtabs",
+  "signing": {
+    "keyAlias": "k8defect",
+    "keystore": "k8defect.keystore"
+  }
+}

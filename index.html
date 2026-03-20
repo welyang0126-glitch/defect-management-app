@@ -876,6 +876,11 @@
   // (skeletons already visible in HTML; placeholders already visible for floor/room/roomdetail)
 
   syncAllSheets();
+
+  // Service Worker 등록 (PWA/TWA)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
 </script>
 </body>
 </html>
