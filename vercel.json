@@ -1,7 +1,8 @@
 {
   "rewrites": [
-    { "source": "/action", "destination": "/action.html" },
-    { "source": "/",       "destination": "/index.html"  }
+    { "source": "/action",  "destination": "/action.html"  },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/",        "destination": "/index.html"   }
   ],
   "headers": [
     {
