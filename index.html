@@ -133,8 +133,9 @@
 <body>
 
 <nav class="nav-tab">
-  <a href="index.html" class="active">📋 Defect Report</a>
-  <a href="action.html">✅ Defect Action</a>
+  <a href="index.html" class="active">📋 Report</a>
+  <a href="action.html">✅ Action</a>
+  <a href="list.html">📊 List</a>
 </nav>
 
 <div id="mainForm">
@@ -317,15 +318,13 @@
 <script>
   // ============================================================
   //  Config
+  //  (tower/floor/room 데이터는 Railway DB에서 동적으로 가져옴)
   // ============================================================
-  const SHEET_ID = '1nUKJ1612YuYjoGZDaW74GUGQTuBe7nnrduE6l-POIfE';
 
   // Apps Script 배포 후 URL을 여기에 입력하세요 (action.html과 동일한 URL)
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzM7U6QlKOpsT-hM7FZvRAEIiG7HpXjLOTbRICQvuN9CDcDoiNqmyA3Hckj4JI6R7c6/exec';
 
-  // Sheet tab name → fetched and parsed into towerData
-  const SHEET_TABS = ['E', 'F', 'O', 'C', 'B'];
-
+  // Fallback용 기본 work_categories (DB 실패 시 사용)
   const WORK_CATEGORY = ['Ricons', 'Eunmin S&D', 'Daeshin', 'Hyundai Elevator', 'Jungdo'];
 
   // ============================================================
@@ -402,151 +401,46 @@
   }
 
   // ============================================================
-  //  JSONP per sheet (sequential, setResponse override)
+  //  Railway DB에서 config 가져오기 (Apps Script ?type=config 경유)
+  //  Tower/Floor/Room 등을 DB에서 동적으로 로드
+  //  DB 수정 시 앱 재배포 없이 즉시 반영됨
   // ============================================================
-  function fetchSheet(tab) {
-    return new Promise((resolve, reject) => {
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
-      dbg(`Fetching sheet "${tab}"`);
-
-      const timer = setTimeout(() => {
-        window.google.visualization.Query.setResponse = null;
-        document.getElementById('_s_' + tab)?.remove();
-        reject(new Error('timeout:' + tab));
-      }, 12000);
-
-      window.google = window.google || {};
-      window.google.visualization = window.google.visualization || {};
-      window.google.visualization.Query = window.google.visualization.Query || {};
-      window.google.visualization.Query.setResponse = function(json) {
-        clearTimeout(timer);
-        window.google.visualization.Query.setResponse = null;
-        document.getElementById('_s_' + tab)?.remove();
-        dbg(`Sheet "${tab}" → callback received, status: ${json.status}`);
-        if (json.status === 'error') {
-          reject(new Error('gviz error: ' + (json.errors?.[0]?.message || 'unknown')));
-        } else {
-          resolve(json);
-        }
-      };
-
-      const script = document.createElement('script');
-      script.id = '_s_' + tab;
-      script.src = url;
-      script.onerror = () => {
-        clearTimeout(timer);
-        window.google.visualization.Query.setResponse = null;
-        reject(new Error('load-error:' + tab));
-      };
-      document.head.appendChild(script);
-    });
-  }
-
-  function parseSheet(json, tab) {
-    const rows = json.table.rows;
-    const cols = json.table.cols;
-    dbg(`Sheet "${tab}" cols: ${cols.map(c => '"' + c.label + '"').join(', ')}`);
-
-    const hasLabels = cols.some(c => c.label && c.label.trim() !== '');
-    dbg(`Sheet "${tab}" hasLabels: ${hasLabels}`);
-
-    let colIdx;
-    if (hasLabels) {
-      colIdx = {};
-      cols.forEach((c, i) => { colIdx[c.label.trim()] = i; });
-    } else {
-      // gviz returned empty labels (header row not recognized).
-      // Positional mapping based on tower type:
-      // E/F (5-col): Floor, Room, Room detailed, Works, Work category
-      // O/C/B (4-col): Floor, Room detailed, Works, Work category
-      dbg(`Sheet "${tab}": positional fallback (${cols.length} cols)`);
-      colIdx = cols.length >= 5
-        ? { 'Floor': 0, 'Room': 1, 'Room detailed': 2, 'Works': 3, 'Work category': 4 }
-        : { 'Floor': 0, 'Room detailed': 1, 'Works': 2, 'Work category': 3 };
-    }
-
-    const extract = key => [...new Set(
-      rows.map(r => {
-        const ci = colIdx[key];
-        if (ci === undefined) return null;
-        return r.c[ci]?.v ? String(r.c[ci].v).trim() : null;
-      }).filter(Boolean)
-    )];
-
-    const TOWER_NAME_MAP = { 'E': 'E tower', 'F': 'F tower', 'O': 'Office', 'C': 'Commercial', 'B': 'Basement' };
-    const rawTower = extract('Tower')[0] || tab;
-    const towerName = TOWER_NAME_MAP[rawTower] || rawTower;
-    const floors     = extract('Floor');
-    const rooms      = extract('Room');
-    const roomDetail = extract('Room detailed').sort((a, b) => a.localeCompare(b));
-    const works      = extract('Works').filter(v => v.toLowerCase() !== 'works');
-    const workCat    = extract('Work category').filter(v => v.toLowerCase() !== 'work category');
-
-    dbg(`Sheet "${tab}" → tower:"${towerName}" floors:${floors.length} rooms:${rooms.length} rd:${roomDetail.length} works:${works.length} wc:${workCat.length}`);
-    return { towerName, floors, rooms, roomDetail, works, workCat };
-  }
-
-  // ============================================================
-  //  Sync all sheets sequentially (setResponse only handles one at a time)
-  // ============================================================
-  async function syncAllSheets() {
+  async function syncFromDB() {
     setSyncStatus('loading', 'Syncing...');
-    debugLog = [];
-    dbg('Fetching ' + SHEET_TABS.length + ' sheets: ' + SHEET_TABS.join(', '));
+    dbg('Fetching config from Railway DB via Apps Script...');
 
-    const results = [];
-    for (const tab of SHEET_TABS) {
-      try {
-        const json = await fetchSheet(tab);
-        results.push({ ok: true, tab, json });
-      } catch (err) {
-        results.push({ ok: false, tab, err: err.message });
-      }
+    try {
+      const res  = await fetch(APPS_SCRIPT_URL + '?type=config');
+      const json = await res.json();
+
+      if (!json.ok) throw new Error(json.error || 'Config fetch failed');
+
+      DATA.towerData   = json.towerData;
+      DATA.workCategory = json.workCategory && json.workCategory.length
+        ? json.workCategory : [...WORK_CATEGORY];
+
+      dbg('DB config loaded. Towers: ' + Object.keys(DATA.towerData).join(', '));
+      setSyncStatus('ok', 'Live');
+      setCardTag('roomDetailSync', 'Live');
+      setCardTag('workSync', 'Live');
+
+    } catch (err) {
+      dbg('DB config error: ' + err.message + ' — using fallback');
+      // FALLBACK 유지 (DATA 초기값)
+      setSyncStatus('error', 'Offline');
+      setCardTag('roomDetailSync', 'Cached');
+      setCardTag('workSync', 'Cached');
+      document.getElementById('fetchError').classList.add('show');
     }
 
-    const newData = JSON.parse(JSON.stringify(FALLBACK));
-    let anyOk = false;
-
-    results.forEach(r => {
-      if (!r.ok) { dbg(`FAILED "${r.tab}": ${r.err}`); return; }
-      try {
-        const p = parseSheet(r.json, r.tab);
-        anyOk = true;
-        newData[p.towerName] = {
-          floors:     p.floors.length     ? p.floors     : (newData[p.towerName]?.floors     || []),
-          rooms:      p.rooms,
-          roomDetail: p.roomDetail.length ? p.roomDetail : (newData[p.towerName]?.roomDetail || []),
-          works:      p.works.length      ? p.works      : (newData[p.towerName]?.works      || ['CIV','MEP','Safety']),
-        };
-        if (p.workCat.length) DATA.workCategory = p.workCat;
-      } catch (e) {
-        dbg(`PARSE ERR "${r.tab}": ${e.message}`);
-      }
-    });
-
-    DATA.towerData = newData;
-    dbg('Towers loaded: ' + JSON.stringify(Object.keys(DATA.towerData)));
-
-    // Render Tower and Work Category (always available)
+    // Tower / Work Category 렌더 (성공·실패 모두)
     const VALID_TOWERS = ['E tower', 'F tower', 'Office', 'Commercial', 'Basement'];
     revealOptions('tower-options', 'tower-skeleton');
     renderOptions('tower-options', Object.keys(DATA.towerData).filter(t => VALID_TOWERS.includes(t)), 'tower', 'col3');
     revealOptions('work-options', 'work-skeleton');
     renderOptions('work-options', DATA.workCategory, 'work', 'col1');
 
-    // Re-render any fields that were already selected
     if (state.tower) updateFieldsByTower(false);
-
-    if (anyOk) {
-      setSyncStatus('ok', 'Live');
-      setCardTag('roomDetailSync', 'Live');
-      setCardTag('workSync', 'Live');
-    } else {
-      setSyncStatus('error', 'Offline');
-      setCardTag('roomDetailSync', 'Cached');
-      setCardTag('workSync', 'Cached');
-      document.getElementById('fetchError').classList.add('show');
-    }
   }
 
   // ============================================================
@@ -893,7 +787,7 @@
   // Render Project options on load
   renderOptions('project-options', PROJECTS, 'project', 'col2');
 
-  syncAllSheets();
+  syncFromDB();
 
   // Service Worker 등록 (PWA/TWA)
   if ('serviceWorker' in navigator) {
