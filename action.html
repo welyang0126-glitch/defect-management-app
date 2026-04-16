@@ -213,25 +213,35 @@
     <!-- ===== MANUAL MODE (full 6-step selection) ===== -->
     <div id="manualMode">
 
-    <!-- 1. Tower -->
+    <!-- 1. Project -->
     <div class="card" id="card1">
       <div class="card-header">
         <div class="step-badge" id="badge1">1</div>
-        <div class="card-title">Tower <span class="required-mark">*</span></div>
+        <div class="card-title">Project <span class="required-mark">*</span></div>
         <div class="card-tag" id="syncTag"></div>
       </div>
-      <div id="tower-skeleton" class="skeleton-wrap" style="grid-template-columns:repeat(2,1fr)">
-        <div class="skeleton"></div><div class="skeleton"></div>
+      <div id="project-skeleton" class="skeleton-wrap" style="grid-template-columns:repeat(2,1fr)">
         <div class="skeleton"></div><div class="skeleton"></div>
       </div>
+      <div id="project-options" class="options-grid col2" style="display:none"></div>
+      <div class="error-msg" id="err-project">Please select a Project.</div>
+    </div>
+
+    <!-- 2. Tower -->
+    <div class="card" id="card2">
+      <div class="card-header">
+        <div class="step-badge pending" id="badge2">2</div>
+        <div class="card-title">Tower <span class="required-mark">*</span></div>
+      </div>
+      <div id="tower-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Project first</div>
       <div id="tower-options" class="options-grid col2" style="display:none"></div>
       <div class="error-msg" id="err-tower">Please select a Tower.</div>
     </div>
 
-    <!-- 2. Floor -->
-    <div class="card" id="card2">
+    <!-- 3. Floor -->
+    <div class="card" id="card3">
       <div class="card-header">
-        <div class="step-badge pending" id="badge2">2</div>
+        <div class="step-badge pending" id="badge3">3</div>
         <div class="card-title">Floor <span class="required-mark">*</span></div>
       </div>
       <div id="floor-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Tower first</div>
@@ -239,10 +249,10 @@
       <div class="error-msg" id="err-floor">Please select a Floor.</div>
     </div>
 
-    <!-- 3. Room Detailed -->
-    <div class="card" id="card3">
+    <!-- 4. Room Detailed -->
+    <div class="card" id="card4">
       <div class="card-header">
-        <div class="step-badge pending" id="badge3">3</div>
+        <div class="step-badge pending" id="badge4">4</div>
         <div class="card-title">Room Detailed <span class="required-mark">*</span></div>
       </div>
       <div id="roomdetail-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Floor first</div>
@@ -250,10 +260,10 @@
       <div class="error-msg" id="err-roomdetail">Please select Room Detailed.</div>
     </div>
 
-    <!-- 4. Work Category -->
-    <div class="card" id="card4">
+    <!-- 5. Work Category -->
+    <div class="card" id="card5">
       <div class="card-header">
-        <div class="step-badge pending" id="badge4">4</div>
+        <div class="step-badge pending" id="badge5">5</div>
         <div class="card-title">Work Category <span class="required-mark">*</span></div>
       </div>
       <div id="work-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select Room Detailed first</div>
@@ -261,10 +271,10 @@
       <div class="error-msg" id="err-work">Please select a Work Category.</div>
     </div>
 
-    <!-- 5. ID -->
-    <div class="card" id="card5">
+    <!-- 6. ID -->
+    <div class="card" id="card6">
       <div class="card-header">
-        <div class="step-badge pending" id="badge5">5</div>
+        <div class="step-badge pending" id="badge6">6</div>
         <div class="card-title">Defect ID <span class="required-mark">*</span></div>
       </div>
       <div id="id-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select Work Category first</div>
@@ -273,10 +283,10 @@
       <div class="error-msg" id="err-id">Please select a Defect ID.</div>
     </div>
 
-    <!-- 6. Photo (After) -->
-    <div class="card" id="card6">
+    <!-- 7. Photo (After) -->
+    <div class="card" id="card7">
       <div class="card-header">
-        <div class="step-badge pending" id="badge6">6</div>
+        <div class="step-badge pending" id="badge7">7</div>
         <div class="card-title">Photo (After) <span class="required-mark">*</span></div>
       </div>
       <div class="photo-wrap">
@@ -325,18 +335,18 @@
   //  Config
   // ============================================================
   const SHEET_ID = '1t_feuRxrgQYyKw7PoplyPcyWa73A8lIVq7fHvrLhaIY';
-  const SHEET_TAB = 'Sheet1';
+  const SHEET_TAB = '시트1';
 
   // Apps Script 배포 후 URL을 여기에 입력하세요
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzM7U6QlKOpsT-hM7FZvRAEIiG7HpXjLOTbRICQvuN9CDcDoiNqmyA3Hckj4JI6R7c6/exec';
 
-  // Column positions (0-based) — confirmed from spreadsheet structure
+  // Column positions (0-based) — matches Code.gs COL (1-based) minus 1
   const COL = {
-    ID: 0, TIME_BEFORE: 1, TIME_AFTER: 2,
-    TOWER: 3, FLOOR: 4, ROOM: 5, ROOM_DETAIL: 6,
-    WORK_CAT: 7, DESC_O: 8, DESC_E: 9,
-    PIC: 10, PHOTO_BEFORE: 11, PHOTO_AFTER: 12,
-    STATUS: 13, APPROVED: 14,
+    ID: 0, PROJECT: 1, TIME_BEFORE: 2, TIME_AFTER: 3,
+    TOWER: 4, FLOOR: 5, ROOM: 6, ROOM_DETAIL: 7,
+    WORKS: 8, WORK_CAT: 9, DESC_O: 10, DESC_E: 11,
+    PIC: 12, PHOTO_BEFORE: 13, PHOTO_AFTER: 14,
+    STATUS: 15, APPROVED: 16,
   };
 
   // ============================================================
@@ -345,10 +355,10 @@
   let allRecords = [];  // all rows from sheet
 
   const state = {
-    tower: null, floor: null, roomDetail: null,
+    project: null, tower: null, floor: null, roomDetail: null,
     work: null, recordId: null, photo: null,
   };
-  const TOTAL_FIELDS = 6;
+  const TOTAL_FIELDS = 7;
 
   // ============================================================
   //  Debug
@@ -431,9 +441,10 @@
       cols.forEach((c, i) => { if (c.label) labelIdx[c.label.trim()] = i; });
       dbg('Label map: ' + JSON.stringify(labelIdx));
       const remap = {
-        'ID': 'ID', 'Time(before)': 'TIME_BEFORE', 'Time(after)': 'TIME_AFTER',
+        'ID': 'ID', 'Project': 'PROJECT',
+        'Time(before)': 'TIME_BEFORE', 'Time(after)': 'TIME_AFTER',
         'Tower': 'TOWER', 'Floor': 'FLOOR', 'Room': 'ROOM',
-        'Room detailed': 'ROOM_DETAIL', 'Work category': 'WORK_CAT',
+        'Room detailed': 'ROOM_DETAIL', 'Works': 'WORKS', 'Work category': 'WORK_CAT',
         'Description(O)': 'DESC_O', 'Description(E)': 'DESC_E',
         'PIC': 'PIC', 'Photo(before)': 'PHOTO_BEFORE', 'Photo(after)': 'PHOTO_AFTER',
         'Status': 'STATUS', 'approved': 'APPROVED',
@@ -445,6 +456,7 @@
 
     const records = rows.map(row => ({
       id:         getCell(row, colMap.ID),
+      project:    getCell(row, colMap.PROJECT),
       timeBefore: getCell(row, colMap.TIME_BEFORE),
       tower:      getCell(row, colMap.TOWER),
       floor:      getCell(row, colMap.FLOOR),
@@ -472,13 +484,12 @@
       const json = await fetchSheet();
       allRecords = parseRecords(json);
 
-      const towers = unique(allRecords.map(r => r.tower));
-      dbg('Towers: ' + JSON.stringify(towers));
-
-      // Render towers
-      document.getElementById('tower-skeleton').style.display = 'none';
-      renderOptions('tower-options', towers, 'tower', 'col2');
-      document.getElementById('tower-options').style.display = '';
+      // Render Project options (from B column)
+      const projects = unique(allRecords.map(r => r.project));
+      dbg('Projects: ' + JSON.stringify(projects));
+      document.getElementById('project-skeleton').style.display = 'none';
+      renderOptions('project-options', projects, 'project', 'col2');
+      document.getElementById('project-options').style.display = '';
 
       setSyncStatus('ok', 'Live · ' + allRecords.length + ' pending');
       document.getElementById('syncTag').textContent = allRecords.length + ' pending';
@@ -486,8 +497,8 @@
       dbg('Sync failed: ' + e.message);
       setSyncStatus('error', 'Offline');
       document.getElementById('fetchError').classList.add('show');
-      document.getElementById('tower-skeleton').style.display = 'none';
-      document.getElementById('tower-options').style.display = '';
+      document.getElementById('project-skeleton').style.display = 'none';
+      document.getElementById('project-options').style.display = '';
     }
   }
 
@@ -500,6 +511,7 @@
 
   function filterRecords() {
     return allRecords.filter(r =>
+      (!state.project    || r.project    === state.project) &&
       (!state.tower      || r.tower      === state.tower) &&
       (!state.floor      || r.floor      === state.floor) &&
       (!state.roomDetail || r.roomDetail === state.roomDetail) &&
@@ -510,6 +522,20 @@
   // ============================================================
   //  Cascade update functions
   // ============================================================
+  function onProjectChange() {
+    state.tower = null; state.floor = null; state.roomDetail = null; state.work = null; state.recordId = null;
+    updateBadge('tower'); updateBadge('floor'); updateBadge('roomDetail'); updateBadge('work'); updateBadge('recordId');
+
+    const filtered = filterRecords();
+    const towers = unique(filtered.map(r => r.tower));
+    renderField('tower-options', 'tower-placeholder', towers, 'tower', 'col2');
+    showPlaceholder('floor');
+    showPlaceholder('roomdetail');
+    showPlaceholder('work');
+    showIdPlaceholder('↑ Select Work Category first');
+    updateProgress();
+  }
+
   function onTowerChange() {
     state.floor = null; state.roomDetail = null; state.work = null; state.recordId = null;
     updateBadge('floor'); updateBadge('roomDetail'); updateBadge('work'); updateBadge('recordId');
@@ -648,8 +674,8 @@
   }
 
   function showPlaceholder(field) {
-    const phMap  = { roomdetail: 'roomdetail-placeholder', work: 'work-placeholder' };
-    const optMap = { roomdetail: 'roomdetail-options',     work: 'work-options'     };
+    const phMap  = { tower: 'tower-placeholder', floor: 'floor-placeholder', roomdetail: 'roomdetail-placeholder', work: 'work-placeholder' };
+    const optMap = { tower: 'tower-options', floor: 'floor-options', roomdetail: 'roomdetail-options', work: 'work-options' };
     const ph  = document.getElementById(phMap[field]);
     const opt = document.getElementById(optMap[field]);
     if (ph)  ph.style.display  = '';
@@ -664,15 +690,16 @@
     hideError('err-' + ERR_KEY[key]);
     updateBadge(key);
 
-    if      (key === 'tower')      onTowerChange();
+    if      (key === 'project')    onProjectChange();
+    else if (key === 'tower')      onTowerChange();
     else if (key === 'floor')      onFloorChange();
     else if (key === 'roomDetail') onRoomDetailChange();
     else if (key === 'work')       onWorkChange();
   }
 
-  const ERR_KEY = { tower:'tower', floor:'floor', roomDetail:'roomdetail', work:'work' };
+  const ERR_KEY = { project:'project', tower:'tower', floor:'floor', roomDetail:'roomdetail', work:'work' };
 
-  const BADGE_MAP = { tower:1, floor:2, roomDetail:3, work:4, recordId:5 };
+  const BADGE_MAP = { project:1, tower:2, floor:3, roomDetail:4, work:5, recordId:6 };
   function updateBadge(key) {
     const idx = BADGE_MAP[key]; if (!idx) return;
     const b = document.getElementById('badge' + idx);
@@ -682,7 +709,7 @@
   }
 
   function updateProgress() {
-    const done = [state.tower, state.floor, state.roomDetail, state.work, state.recordId, state.photo]
+    const done = [state.project, state.tower, state.floor, state.roomDetail, state.work, state.recordId, state.photo]
       .filter(Boolean).length;
     const pct = Math.round((done / TOTAL_FIELDS) * 100);
     document.getElementById('progressFill').style.width = pct + '%';
@@ -708,8 +735,8 @@
       document.getElementById('previewWrap').classList.add('show');
       document.getElementById('uploadZone').classList.add('has-file');
       document.getElementById('photoInfo').textContent = `${file.name}  (${(file.size/1024/1024).toFixed(1)} MB)`;
-      document.getElementById('badge6').textContent = '✓';
-      document.getElementById('badge6').className = 'step-badge done';
+      document.getElementById('badge7').textContent = '✓';
+      document.getElementById('badge7').className = 'step-badge done';
       updateProgress();
     };
     reader.readAsDataURL(file);
@@ -721,8 +748,8 @@
     document.getElementById('previewWrap').classList.remove('show');
     document.getElementById('uploadZone').classList.remove('has-file');
     document.getElementById('photoInfo').textContent = '';
-    document.getElementById('badge6').textContent = '6';
-    document.getElementById('badge6').className = 'step-badge pending';
+    document.getElementById('badge7').textContent = '7';
+    document.getElementById('badge7').className = 'step-badge pending';
     updateProgress();
   }
 
@@ -736,6 +763,7 @@
     // — Validate —
     let valid = true;
     const checks = [
+      { k:'project',    e:'err-project',    m:'Please select a Project.' },
       { k:'tower',      e:'err-tower',      m:'Please select a Tower.' },
       { k:'floor',      e:'err-floor',      m:'Please select a Floor.' },
       { k:'roomDetail', e:'err-roomdetail', m:'Please select Room Detailed.' },
@@ -847,15 +875,17 @@
   function resetForm() {
     Object.keys(state).forEach(k => { state[k] = null; });
     document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 7; i++) {
       const b = document.getElementById('badge' + i);
-      b.textContent = i; b.className = 'step-badge pending';
+      if (b) { b.textContent = i; b.className = 'step-badge pending'; }
     }
+    // badge1 (Project) stays active since project-options are already rendered
+    document.getElementById('badge1').className = 'step-badge';
+    showPlaceholder('tower');
+    showPlaceholder('floor');
     showPlaceholder('roomdetail');
     showPlaceholder('work');
     showIdPlaceholder('↑ Select Work Category first');
-    document.getElementById('floor-placeholder').style.display = '';
-    document.getElementById('floor-options').style.display = 'none';
     removePhoto();
     document.querySelectorAll('.error-msg').forEach(e => e.classList.remove('show'));
     document.getElementById('progressFill').style.width = '0%';
