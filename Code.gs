@@ -23,11 +23,10 @@ const SHEET_NAME      = '시트1';
 
 // ----------------------------------------------------------------
 //  Railway PostgreSQL — config 데이터 소스
+//  k8-api 백엔드의 /api/defect-config 엔드포인트를 통해 조회
 //  테이블 수정 시 Railway DB만 편집하면 앱에 즉시 반영됨
 // ----------------------------------------------------------------
-const RAILWAY_JDBC = 'jdbc:postgresql://gondola.proxy.rlwy.net:55961/railway?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory';
-const RAILWAY_USER = 'postgres';
-const RAILWAY_PASS = 'aGfyRdkZtnUUHJoDuhSMjdpYFlupTxmt';
+const DEFECT_CONFIG_URL = 'https://k8-api-production.up.railway.app/api/defect-config';
 
 // 열 번호 (1-based, getRange 용)
 const COL = {
@@ -88,98 +87,20 @@ function doGet(e) {
 }
 
 // ----------------------------------------------------------------
-//  getConfigFromDB — Railway PostgreSQL에서 config 데이터 조회
-//  index.html이 Google Sheets gviz 대신 이 엔드포인트를 사용
+//  getConfigFromDB — k8-api 백엔드를 통해 Railway config 조회
+//  JDBC 대신 UrlFetchApp 사용 (Apps Script JDBC SSL 호환성 문제 우회)
 // ----------------------------------------------------------------
 function getConfigFromDB() {
-  let conn;
   try {
-    conn = Jdbc.getConnection(RAILWAY_JDBC, RAILWAY_USER, RAILWAY_PASS);
+    const res  = UrlFetchApp.fetch(DEFECT_CONFIG_URL, { muteHttpExceptions: true });
+    const json = JSON.parse(res.getContentText());
 
-    // 1. towers
-    const tRes = conn.createStatement().executeQuery(
-      'SELECT id, name, has_rooms FROM defect_towers ORDER BY id'
-    );
-    const towers = [];
-    while (tRes.next()) {
-      towers.push({ id: tRes.getInt(1), name: tRes.getString(2), hasRooms: tRes.getBoolean(3) });
-    }
-    tRes.close();
+    if (!json.ok) throw new Error(json.error || 'Config API returned ok=false');
 
-    // 2. floors
-    const fRes = conn.createStatement().executeQuery(
-      'SELECT tower_id, name FROM defect_tower_floors ORDER BY tower_id, sort_order'
-    );
-    const floorMap = {};
-    while (fRes.next()) {
-      const tid = fRes.getInt(1);
-      if (!floorMap[tid]) floorMap[tid] = [];
-      floorMap[tid].push(fRes.getString(2));
-    }
-    fRes.close();
-
-    // 3. rooms
-    const rRes = conn.createStatement().executeQuery(
-      'SELECT tower_id, name FROM defect_tower_rooms ORDER BY tower_id, sort_order'
-    );
-    const roomMap = {};
-    while (rRes.next()) {
-      const tid = rRes.getInt(1);
-      if (!roomMap[tid]) roomMap[tid] = [];
-      roomMap[tid].push(rRes.getString(2));
-    }
-    rRes.close();
-
-    // 4. room_details
-    const rdRes = conn.createStatement().executeQuery(
-      'SELECT tower_id, name FROM defect_tower_room_details ORDER BY tower_id, name'
-    );
-    const rdMap = {};
-    while (rdRes.next()) {
-      const tid = rdRes.getInt(1);
-      if (!rdMap[tid]) rdMap[tid] = [];
-      rdMap[tid].push(rdRes.getString(2));
-    }
-    rdRes.close();
-
-    // 5. works
-    const wRes = conn.createStatement().executeQuery(
-      'SELECT tower_id, name FROM defect_tower_works ORDER BY tower_id, id'
-    );
-    const worksMap = {};
-    while (wRes.next()) {
-      const tid = wRes.getInt(1);
-      if (!worksMap[tid]) worksMap[tid] = [];
-      worksMap[tid].push(wRes.getString(2));
-    }
-    wRes.close();
-
-    // 6. work_categories
-    const wcRes = conn.createStatement().executeQuery(
-      'SELECT name FROM defect_work_categories ORDER BY id'
-    );
-    const workCategory = [];
-    while (wcRes.next()) workCategory.push(wcRes.getString(1));
-    wcRes.close();
-
-    conn.close();
-
-    // tower 이름을 key로 DATA 구조 생성 (index.html FALLBACK과 동일한 포맷)
-    const towerData = {};
-    towers.forEach(function(t) {
-      towerData[t.name] = {
-        floors:     floorMap[t.id]  || [],
-        rooms:      roomMap[t.id]   || [],
-        roomDetail: rdMap[t.id]     || [],
-        works:      worksMap[t.id]  || ['CIV', 'MEP', 'Safety'],
-      };
-    });
-
-    return corsResponse({ ok: true, towerData: towerData, workCategory: workCategory });
+    return corsResponse({ ok: true, towerData: json.towerData, workCategory: json.workCategory });
 
   } catch (err) {
     Logger.log('getConfigFromDB error: ' + err.toString());
-    if (conn) { try { conn.close(); } catch(e2) {} }
     return corsResponse({ ok: false, error: err.toString() });
   }
 }
