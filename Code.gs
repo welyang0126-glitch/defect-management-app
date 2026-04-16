@@ -2,10 +2,10 @@
 //  Defect System API — Google Apps Script Web App
 //
 //  열 구조 (시트1):
-//  A=ID  B=Time(before)  C=Time(after)  D=Tower  E=Floor  F=Room
-//  G=Room detailed  H=Works(CIV/MEP/Safety)  I=Work category
-//  J=Description(O)  K=Description(E)  L=PIC
-//  M=Photo(before)  N=Photo(after)  O=Status  P=approved  Q=Project
+//  A=ID  B=Project  C=Time(before)  D=Time(after)  E=Tower  F=Floor
+//  G=Room  H=Room detailed  I=Works(CIV/MEP/Safety)  J=Work category
+//  K=Description(O)  L=Description(E)  M=PIC
+//  N=Photo(before)  O=Photo(after)  P=Status  Q=approved
 //
 //  배포 방법:
 //  1. https://script.google.com → 새 프로젝트 → 코드 붙여넣기
@@ -24,22 +24,22 @@ const SHEET_NAME      = '시트1';
 // 열 번호 (1-based, getRange 용)
 const COL = {
   ID:           1,   // A
-  TIME_BEFORE:  2,   // B
-  TIME_AFTER:   3,   // C
-  TOWER:        4,   // D
-  FLOOR:        5,   // E
-  ROOM:         6,   // F
-  ROOM_DETAIL:  7,   // G
-  WORKS:        8,   // H  ← Works (CIV/MEP/Safety)
-  WORK_CAT:     9,   // I  ← Work Category (Ricons/Eunmin S&D 등)
-  DESC_O:       10,  // J  ← Description 원문
-  DESC_E:       11,  // K  ← Description 영어 번역
-  PIC:          12,  // L  ← Person In Charge
-  PHOTO_BEFORE: 13,  // M  ← Photo(before)
-  PHOTO_AFTER:  14,  // N  ← Photo(after)
-  STATUS:       15,  // O  ← Status
-  APPROVED:     16,  // P  ← approved
-  PROJECT:      17,  // Q  ← Project (K8HH1 / K8CT1)
+  PROJECT:      2,   // B  ← Project (K8HH1 / K8CT1)
+  TIME_BEFORE:  3,   // C
+  TIME_AFTER:   4,   // D
+  TOWER:        5,   // E
+  FLOOR:        6,   // F
+  ROOM:         7,   // G
+  ROOM_DETAIL:  8,   // H
+  WORKS:        9,   // I  ← Works (CIV/MEP/Safety)
+  WORK_CAT:     10,  // J  ← Work Category (Ricons/Eunmin S&D 등)
+  DESC_O:       11,  // K  ← Description 원문
+  DESC_E:       12,  // L  ← Description 영어 번역
+  PIC:          13,  // M  ← Person In Charge
+  PHOTO_BEFORE: 14,  // N  ← Photo(before)
+  PHOTO_AFTER:  15,  // O  ← Photo(after)
+  STATUS:       16,  // P  ← Status
+  APPROVED:     17,  // Q  ← approved
 };
 
 // ----------------------------------------------------------------
@@ -210,22 +210,22 @@ function handleReport(p) {
   const sheet = getSheet();
   sheet.appendRow([
     recordId,                   // A (1):  ID
-    formatDateTime(new Date()), // B (2):  Time(before)
-    '',                         // C (3):  Time(after)
-    tower        || '',         // D (4):  Tower
-    floor        || '',         // E (5):  Floor
-    room         || '',         // F (6):  Room
-    roomDetail   || '',         // G (7):  Room detailed
-    works        || '',         // H (8):  Works (CIV/MEP/Safety)
-    workCategory || '',         // I (9):  Work category (Ricons/Eunmin S&D 등)
-    description  || '',         // J (10): Description 원문
-    descEng,                    // K (11): Description 영어 번역
-    pic          || '',         // L (12): Person In Charge
-    fileUrl,                    // M (13): Photo(before)
-    '',                         // N (14): Photo(after)
-    'To be',                    // O (15): Status
-    '',                         // P (16): approved
-    project      || '',         // Q (17): Project (K8HH1/K8CT1)
+    project      || '',         // B (2):  Project (K8HH1/K8CT1)
+    formatDateTime(new Date()), // C (3):  Time(before)
+    '',                         // D (4):  Time(after)
+    tower        || '',         // E (5):  Tower
+    floor        || '',         // F (6):  Floor
+    room         || '',         // G (7):  Room
+    roomDetail   || '',         // H (8):  Room detailed
+    works        || '',         // I (9):  Works (CIV/MEP/Safety)
+    workCategory || '',         // J (10): Work category (Ricons/Eunmin S&D 등)
+    description  || '',         // K (11): Description 원문
+    descEng,                    // L (12): Description 영어 번역
+    pic          || '',         // M (13): Person In Charge
+    fileUrl,                    // N (14): Photo(before)
+    '',                         // O (15): Photo(after)
+    'To be',                    // P (16): Status
+    '',                         // Q (17): approved
   ]);
 
   return corsResponse({ ok: true, url: fileUrl, recordId });
