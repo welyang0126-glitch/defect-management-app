@@ -5,7 +5,7 @@
 //  A=ID  B=Time(before)  C=Time(after)  D=Tower  E=Floor  F=Room
 //  G=Room detailed  H=Works(CIV/MEP/Safety)  I=Work category
 //  J=Description(O)  K=Description(E)  L=PIC
-//  M=Photo(before)  N=Photo(after)  O=Status  P=approved
+//  M=Photo(before)  N=Photo(after)  O=Status  P=approved  Q=Project
 //
 //  배포 방법:
 //  1. https://script.google.com → 새 프로젝트 → 코드 붙여넣기
@@ -39,6 +39,7 @@ const COL = {
   PHOTO_AFTER:  14,  // N  ← Photo(after)
   STATUS:       15,  // O  ← Status
   APPROVED:     16,  // P  ← approved
+  PROJECT:      17,  // Q  ← Project (K8HH1 / K8CT1)
 };
 
 // ----------------------------------------------------------------
@@ -159,7 +160,7 @@ function handleAction(p) {
 // ----------------------------------------------------------------
 function handleReport(p) {
   const { fileBase64, fileName, mimeType,
-          tower, floor, room, roomDetail, works, workCategory, pic, description } = p;
+          project, tower, floor, room, roomDetail, works, workCategory, pic, description } = p;
 
   // 1. Before 사진 파일명 생성: YYMMDDHHMM_Tower_WorkCat_Floor_Room_RoomDetailed_Before.ext
   let fileUrl = '';
@@ -224,6 +225,7 @@ function handleReport(p) {
     '',                         // N (14): Photo(after)
     'To be',                    // O (15): Status
     '',                         // P (16): approved
+    project      || '',         // Q (17): Project (K8HH1/K8CT1)
   ]);
 
   return corsResponse({ ok: true, url: fileUrl, recordId });

@@ -160,10 +160,20 @@
   <div class="form-container">
     <div class="fetch-error" id="fetchError">⚠️ Could not sync with Google Sheets. Showing cached data.</div>
 
-    <!-- 1. Tower -->
+    <!-- 1. Project -->
     <div class="card" id="card1">
       <div class="card-header">
         <div class="step-badge" id="badge1">1</div>
+        <div class="card-title">Project <span class="required-mark">*</span></div>
+      </div>
+      <div id="project-options" class="options-grid col2"></div>
+      <div class="error-msg" id="err-project">Please select a Project.</div>
+    </div>
+
+    <!-- 2. Tower -->
+    <div class="card" id="card2">
+      <div class="card-header">
+        <div class="step-badge" id="badge2">2</div>
         <div class="card-title">Tower <span class="required-mark">*</span></div>
       </div>
       <div id="tower-skeleton" class="skeleton-wrap" style="grid-template-columns:repeat(3,1fr)">
@@ -173,10 +183,10 @@
       <div class="error-msg" id="err-tower">Please select a Tower.</div>
     </div>
 
-    <!-- 2. Floor -->
-    <div class="card" id="card2">
+    <!-- 3. Floor -->
+    <div class="card" id="card3">
       <div class="card-header">
-        <div class="step-badge" id="badge2">2</div>
+        <div class="step-badge" id="badge3">3</div>
         <div class="card-title">Floor <span class="required-mark">*</span></div>
       </div>
       <div id="floor-placeholder" class="field-placeholder"><span class="ph-arrow">↑</span> Select a Tower first</div>
@@ -184,10 +194,10 @@
       <div class="error-msg" id="err-floor">Please select a Floor.</div>
     </div>
 
-    <!-- 3. Room -->
-    <div class="card" id="card3">
+    <!-- 4. Room -->
+    <div class="card" id="card4">
       <div class="card-header">
-        <div class="step-badge" id="badge3">3</div>
+        <div class="step-badge" id="badge4">4</div>
         <div class="card-title">Room <span class="required-mark" id="room-required-mark">*</span></div>
         <div class="card-tag" id="room-tag"></div>
       </div>
@@ -196,10 +206,10 @@
       <div class="error-msg" id="err-room">Please select a Room.</div>
     </div>
 
-    <!-- 4. Room Detailed -->
-    <div class="card" id="card4">
+    <!-- 5. Room Detailed -->
+    <div class="card" id="card5">
       <div class="card-header">
-        <div class="step-badge" id="badge4">4</div>
+        <div class="step-badge" id="badge5">5</div>
         <div class="card-title">Room Detailed <span class="required-mark">*</span></div>
         <div class="card-tag" id="roomDetailSync"></div>
       </div>
@@ -208,10 +218,10 @@
       <div class="error-msg" id="err-roomdetail">Please select Room Detailed.</div>
     </div>
 
-    <!-- 5. Works -->
-    <div class="card" id="card5">
+    <!-- 6. Works -->
+    <div class="card" id="card6">
       <div class="card-header">
-        <div class="step-badge" id="badge5">5</div>
+        <div class="step-badge" id="badge6">6</div>
         <div class="card-title">Works <span class="required-mark">*</span></div>
         <div class="card-tag" id="worksSync"></div>
       </div>
@@ -220,10 +230,10 @@
       <div class="error-msg" id="err-works">Please select Works.</div>
     </div>
 
-    <!-- 6. Work Category -->
-    <div class="card" id="card6">
+    <!-- 7. Work Category -->
+    <div class="card" id="card7">
       <div class="card-header">
-        <div class="step-badge" id="badge6">6</div>
+        <div class="step-badge" id="badge7">7</div>
         <div class="card-title">Work Category <span class="required-mark">*</span></div>
         <div class="card-tag" id="workSync"></div>
       </div>
@@ -234,10 +244,10 @@
       <div class="error-msg" id="err-work">Please select a Work Category.</div>
     </div>
 
-    <!-- 7. Person In Charge -->
-    <div class="card" id="card7">
+    <!-- 8. Person In Charge -->
+    <div class="card" id="card8">
       <div class="card-header">
-        <div class="step-badge" id="badge7">7</div>
+        <div class="step-badge" id="badge8">8</div>
         <div class="card-title">Person In Charge</div>
       </div>
       <div class="textarea-wrap">
@@ -247,10 +257,10 @@
       </div>
     </div>
 
-    <!-- 8. Description -->
-    <div class="card" id="card8">
+    <!-- 9. Description -->
+    <div class="card" id="card9">
       <div class="card-header">
-        <div class="step-badge" id="badge8">8</div>
+        <div class="step-badge" id="badge9">9</div>
         <div class="card-title">Description</div>
       </div>
       <div class="textarea-wrap">
@@ -259,10 +269,10 @@
       </div>
     </div>
 
-    <!-- 9. Photo -->
-    <div class="card" id="card9">
+    <!-- 10. Photo -->
+    <div class="card" id="card10">
       <div class="card-header">
-        <div class="step-badge" id="badge9">9</div>
+        <div class="step-badge" id="badge10">10</div>
         <div class="card-title">Photo Attachment</div>
       </div>
       <div class="photo-wrap">
@@ -362,12 +372,14 @@
   // ============================================================
   //  State
   // ============================================================
+  const PROJECTS = ['K8HH1', 'K8CT1'];
+
   const state = {
-    tower: null, floor: null, room: null,
+    project: null, tower: null, floor: null, room: null,
     roomDetail: null, works: null, work: null, pic: '', description: '', photo: null,
   };
 
-  const TOTAL_FIELDS = 9; // including Room (skipped for towers without rooms)
+  const TOTAL_FIELDS = 10; // including Room (skipped for towers without rooms)
 
   function towerHasRooms() {
     return !!(state.tower && DATA.towerData[state.tower]?.rooms?.length);
@@ -562,11 +574,11 @@
 
     // Room — hide card entirely if no rooms for this tower
     const hasRooms = td.rooms.length > 0;
-    document.getElementById('card3').classList.toggle('card-hidden', !hasRooms);
+    document.getElementById('card4').classList.toggle('card-hidden', !hasRooms);
     if (!hasRooms) {
       state.room = 'N/A';
-      document.getElementById('badge3').textContent = '✓';
-      document.getElementById('badge3').classList.add('done');
+      document.getElementById('badge4').textContent = '✓';
+      document.getElementById('badge4').classList.add('done');
     } else {
       if (resetChildren) state.room = null;
       renderField('room-options', 'room-placeholder', td.rooms, 'room', 'col4');
@@ -630,10 +642,10 @@
     if (key === 'tower') updateFieldsByTower(true);
   }
 
-  const ERR_KEY = { tower:'tower', floor:'floor', room:'room', roomDetail:'roomdetail', works:'works', work:'work' };
+  const ERR_KEY = { project:'project', tower:'tower', floor:'floor', room:'room', roomDetail:'roomdetail', works:'works', work:'work' };
 
   function updateBadge(key) {
-    const MAP = { tower:1, floor:2, room:3, roomDetail:4, works:5, work:6 };
+    const MAP = { project:1, tower:2, floor:3, room:4, roomDetail:5, works:6, work:7 };
     const idx = MAP[key]; if (!idx) return;
     const b = document.getElementById('badge' + idx);
     const done = !!state[key];
@@ -645,6 +657,7 @@
     const hasRooms = towerHasRooms();
     const total = hasRooms ? TOTAL_FIELDS : TOTAL_FIELDS - 1;
     const done = [
+      state.project,
       state.tower,
       state.floor,
       hasRooms ? state.room : 'skip',
@@ -667,8 +680,8 @@
   function updatePic() {
     const val = document.getElementById('pic').value;
     state.pic = val;
-    const b = document.getElementById('badge7');
-    b.textContent = val.trim() ? '✓' : '7';
+    const b = document.getElementById('badge8');
+    b.textContent = val.trim() ? '✓' : '8';
     b.classList.toggle('done', !!val.trim());
     updateProgress();
   }
@@ -677,8 +690,8 @@
     const val = document.getElementById('description').value;
     state.description = val;
     document.getElementById('charCount').textContent = val.length;
-    const b = document.getElementById('badge8');
-    b.textContent = val.trim() ? '✓' : '8';
+    const b = document.getElementById('badge9');
+    b.textContent = val.trim() ? '✓' : '9';
     b.classList.toggle('done', !!val.trim());
     updateProgress();
   }
@@ -701,8 +714,8 @@
       document.getElementById('previewWrap').classList.add('show');
       document.getElementById('uploadZone').classList.add('has-file');
       document.getElementById('photoInfo').textContent = `${file.name}  (${(file.size/1024/1024).toFixed(1)} MB)`;
-      document.getElementById('badge9').textContent = '✓';
-      document.getElementById('badge9').classList.add('done');
+      document.getElementById('badge10').textContent = '✓';
+      document.getElementById('badge10').classList.add('done');
       updateProgress();
     };
     reader.readAsDataURL(file);
@@ -714,8 +727,8 @@
     document.getElementById('previewWrap').classList.remove('show');
     document.getElementById('uploadZone').classList.remove('has-file');
     document.getElementById('photoInfo').textContent = '';
-    document.getElementById('badge9').textContent = '9';
-    document.getElementById('badge9').classList.remove('done');
+    document.getElementById('badge10').textContent = '10';
+    document.getElementById('badge10').classList.remove('done');
     updateProgress();
   }
 
@@ -729,13 +742,14 @@
     // — Validate —
     let valid = true;
     const checks = [
+      { k:'project',    e:'err-project',    m:'Please select a Project.' },
       { k:'tower',      e:'err-tower',      m:'Please select a Tower.' },
       { k:'floor',      e:'err-floor',      m:'Please select a Floor.' },
       { k:'roomDetail', e:'err-roomdetail', m:'Please select Room Detailed.' },
       { k:'works',      e:'err-works',      m:'Please select Works.' },
       { k:'work',       e:'err-work',       m:'Please select a Work Category.' },
     ];
-    if (towerHasRooms()) checks.splice(2, 0, { k:'room', e:'err-room', m:'Please select a Room.' });
+    if (towerHasRooms()) checks.splice(3, 0, { k:'room', e:'err-room', m:'Please select a Room.' });
     checks.forEach(({ k, e, m }) => {
       if (!state[k]) { showError(e, m); valid = false; } else hideError(e);
     });
@@ -768,6 +782,7 @@
         fileBase64,
         fileName,
         mimeType:     fileMime,
+        project:      state.project,
         tower:        state.tower,
         floor:        state.floor,
         room:         towerHasRooms() ? state.room : '',
@@ -845,7 +860,7 @@
     Object.keys(state).forEach(k => { state[k] = (k === 'description' || k === 'pic') ? '' : null; });
     document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('.step-badge').forEach((b, i) => { b.textContent = i + 1; b.classList.remove('done'); });
-    document.getElementById('card3').classList.remove('card-hidden');
+    document.getElementById('card4').classList.remove('card-hidden');
     ['floor','room','roomdetail','works'].forEach(f => showPlaceholder(f));
     document.getElementById('pic').value = '';
     document.getElementById('description').value = '';
@@ -874,6 +889,9 @@
   // ============================================================
   // Tower and Work show skeleton while fetching; others show placeholder
   // (skeletons already visible in HTML; placeholders already visible for floor/room/roomdetail)
+
+  // Render Project options on load
+  renderOptions('project-options', PROJECTS, 'project', 'col2');
 
   syncAllSheets();
 
